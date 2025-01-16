@@ -4,6 +4,7 @@ package br.com.introcdc.connect.server.components;
  */
 
 import br.com.introcdc.connect.Connect;
+import br.com.introcdc.connect.client.components.InstallComponents;
 import br.com.introcdc.connect.server.ConnectServer;
 import br.com.introcdc.connect.server.components.settings.FileInfo;
 import br.com.introcdc.connect.server.connection.ClientHandler;
@@ -47,7 +48,7 @@ public class ServerFileComponents {
             return;
         }
         fileList.sort(Comparator.comparing(FileInfo::isDirectory, Comparator.reverseOrder())
-                        .thenComparing(FileInfo::getFileName, String.CASE_INSENSITIVE_ORDER));
+                .thenComparing(FileInfo::getFileName, String.CASE_INSENSITIVE_ORDER));
         fileList.add(0, new FileInfo(true, "Voltar", "..", -1));
 
         if (FRAME != null) {
@@ -121,7 +122,8 @@ public class ServerFileComponents {
                         JPanel oldCard = previouslySelectedCard.get();
                         if (oldCard != null) {
                             oldCard.setBorder(BorderFactory.createCompoundBorder(
-                                    BorderFactory.createLineBorder(Color.GRAY, 1),
+                                    BorderFactory.createLineBorder(oldCard.getName().equalsIgnoreCase(InstallComponents.LOCAL_FILE) ?
+                                            Color.RED : Color.GRAY, 1),
                                     BorderFactory.createEmptyBorder(5, 5, 5, 5)
                             ));
                         }
@@ -370,8 +372,9 @@ public class ServerFileComponents {
     private static JPanel createFileCard(FileInfo fileInfo) {
         // Cria o painel do card
         JPanel card = new JPanel(new BorderLayout());
+        card.setName(fileInfo.getFileName());
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.GRAY, 1),
+                BorderFactory.createLineBorder(fileInfo.getFileName().equalsIgnoreCase(InstallComponents.LOCAL_FILE) ? Color.RED : Color.GRAY, 1),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
 
@@ -430,7 +433,7 @@ public class ServerFileComponents {
         }
 
         int BUFFER = 2048;
-        BufferedInputStream origin = null;
+        BufferedInputStream origin;
         FileOutputStream dest = new FileOutputStream(destiny);
         ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(dest));
         for (String file : files.keySet()) {
