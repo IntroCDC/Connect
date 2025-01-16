@@ -4,7 +4,7 @@ package br.com.introcdc.connect.server.components;
  */
 
 import br.com.introcdc.connect.server.ConnectServer;
-import br.com.introcdc.connect.server.ConnectServerGUI;
+import br.com.introcdc.connect.server.gui.ServerGUI;
 import br.com.introcdc.connect.server.connection.ClientHandler;
 import javazoom.jl.player.Player;
 
@@ -84,24 +84,24 @@ public class ServerAudioComponents {
         } else {
             ClientHandler client = ConnectServer.CLIENTS.get(ConnectServer.SELECTED_CLIENT);
             if (input.equalsIgnoreCase("controls")) {
-                ConnectServerGUI.getInstance().audioControlPanel();
+                ServerGUI.getInstance().audioControlPanel();
             } else {
                 if (input.equalsIgnoreCase("receive")) {
-                    if (ConnectServerGUI.AUDIO_USER != null) {
+                    if (ServerGUI.AUDIO_USER != null) {
                         if (ServerAudioComponents.AUDIO_USER) {
                             ServerAudioComponents.AUDIO_USER = false;
-                            ConnectServerGUI.AUDIO_USER.setBackground(Color.RED);
+                            ServerGUI.AUDIO_USER.setBackground(Color.RED);
                         } else {
-                            ConnectServerGUI.AUDIO_USER.setBackground(Color.YELLOW);
+                            ServerGUI.AUDIO_USER.setBackground(Color.YELLOW);
                         }
                     }
                 } else if (input.equalsIgnoreCase("send")) {
-                    if (ConnectServerGUI.AUDIO_SERVER != null) {
+                    if (ServerGUI.AUDIO_SERVER != null) {
                         if (ServerAudioComponents.AUDIO_SERVER) {
                             ServerAudioComponents.AUDIO_SERVER = false;
-                            ConnectServerGUI.AUDIO_SERVER.setBackground(Color.RED);
+                            ServerGUI.AUDIO_SERVER.setBackground(Color.RED);
                         } else {
-                            ConnectServerGUI.AUDIO_SERVER.setBackground(Color.YELLOW);
+                            ServerGUI.AUDIO_SERVER.setBackground(Color.YELLOW);
                         }
                     }
                 }

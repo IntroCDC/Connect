@@ -4,7 +4,7 @@ package br.com.introcdc.connect.server.commands.info;
  */
 
 import br.com.introcdc.connect.server.ConnectServer;
-import br.com.introcdc.connect.server.ConnectServerGUI;
+import br.com.introcdc.connect.server.gui.ServerGUI;
 import br.com.introcdc.connect.server.command.ServerCommand;
 
 public class ServerCommandDuplicate extends ServerCommand {
@@ -22,7 +22,7 @@ public class ServerCommandDuplicate extends ServerCommand {
             ConnectServer.DISCONNECT_DUPLICATE = true;
             msg("Modo desconectar duplicata ativado!");
         }
-        ConnectServerGUI.toggleColor(ConnectServerGUI.duplicateButton, ConnectServer.DISCONNECT_DUPLICATE);
+        ServerGUI.toggleColor(ServerGUI.duplicateButton, ConnectServer.DISCONNECT_DUPLICATE);
     }
 
 }

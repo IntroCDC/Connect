@@ -11,6 +11,7 @@ import br.com.introcdc.connect.server.components.ServerControlComponents;
 import br.com.introcdc.connect.server.components.ServerFileComponents;
 import br.com.introcdc.connect.server.connection.ClientHandler;
 import br.com.introcdc.connect.server.connection.SocketKeepAlive;
+import br.com.introcdc.connect.server.gui.ServerGUI;
 
 import java.io.File;
 import java.net.ServerSocket;
@@ -19,6 +20,7 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class ConnectServer {
 
@@ -34,6 +36,8 @@ public class ConnectServer {
     public static int SELECTED_CLIENT = 0;
     public static List<String> CONNECTED_KEYS = new ArrayList<>();
     public static boolean DISCONNECT_DUPLICATE = false;
+    public static final AtomicLong BYTES_SENT = new AtomicLong(0);
+    public static final AtomicLong BYTES_RECEIVED = new AtomicLong(0);
 
     public static void handleCommand(String command) {
         String lower = command.toLowerCase();
@@ -73,12 +77,12 @@ public class ConnectServer {
     }
 
     public static void msg(String message, boolean fast) {
-        ConnectServerGUI.log(message);
+        ServerGUI.log(message);
     }
 
     public static void startServer() {
         new File("connect").mkdir();
-        ConnectServerGUI.showGUI();
+        ServerGUI.showGUI();
         ServerCommandEnum.registerCommands();
         new Thread(ServerControlComponents::startControlServer).start();
         new Thread(ConnectServer::startServerConsole).start();
@@ -86,6 +90,7 @@ public class ConnectServer {
         new Thread(() -> {
             try (ServerSocket serverSocket = new ServerSocket(Connect.PORT)) {
                 msg("Servidor iniciado em " + Connect.IP + ":" + Connect.PORT, false);
+                new Thread(() -> ServerGUI.getInstance().monitorTraffic()).start();
                 while (true) {
                     int id = 1;
                     while (CLIENTS.containsKey(id) || TESTING.contains(id)) {
@@ -98,7 +103,7 @@ public class ConnectServer {
                     new Thread(handler).start();
 
                     CLIENTS.put(id, handler);
-                    ConnectServerGUI.addClient(String.valueOf(id));
+                    ServerGUI.addClient(String.valueOf(id));
                     int removeId = id;
                     EXECUTOR.schedule(() -> TESTING.remove(removeId), 1, TimeUnit.SECONDS);
                 }
@@ -110,7 +115,7 @@ public class ConnectServer {
 
     public static void startServerConsole() {
         Scanner scanner = new Scanner(System.in);
-        if (ConnectServerGUI.getInstance() == null) {
+        if (ServerGUI.getInstance() == null) {
             msg("Para ajuda com comandos, digite: help");
         }
         while (true) {

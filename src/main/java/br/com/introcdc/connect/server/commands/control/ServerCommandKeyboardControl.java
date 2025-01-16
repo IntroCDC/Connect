@@ -3,7 +3,7 @@ package br.com.introcdc.connect.server.commands.control;
  * Written by IntroCDC, Bruno Coêlho at 15/01/2025 - 18:31
  */
 
-import br.com.introcdc.connect.server.ConnectServerGUI;
+import br.com.introcdc.connect.server.gui.ServerGUI;
 import br.com.introcdc.connect.server.command.ServerCommand;
 import br.com.introcdc.connect.server.components.ServerControlComponents;
 
@@ -22,8 +22,8 @@ public class ServerCommandKeyboardControl extends ServerCommand {
             ServerControlComponents.KEYBOARD = true;
             msg("Enviar teclas do teclado ativado!");
         }
-        ConnectServerGUI.toggleColor(ServerControlComponents.KEYBOARD_BUTTON, ServerControlComponents.KEYBOARD);
-        ConnectServerGUI.toggleColor(ConnectServerGUI.KEYBOARD, ServerControlComponents.KEYBOARD);
+        ServerGUI.toggleColor(ServerControlComponents.KEYBOARD_BUTTON, ServerControlComponents.KEYBOARD);
+        ServerGUI.toggleColor(ServerGUI.KEYBOARD, ServerControlComponents.KEYBOARD);
     }
 
 }

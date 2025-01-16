@@ -14,10 +14,7 @@ import javax.swing.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
@@ -117,9 +114,25 @@ public class ServerControlComponents {
         sendEvent(event);
     }
 
+    public static long getObjectSizeInBytes(Object obj) {
+        if (obj == null) {
+            return 0;
+        }
+
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+            oos.writeObject(obj);
+            oos.flush();
+            return bos.toByteArray().length;
+        } catch (Exception ignored) {
+        }
+        return 0;
+    }
+
     public static void sendEvent(RemoteEvent event) {
         try {
             if (OUTPUT != null) {
+                ConnectServer.BYTES_SENT.addAndGet(getObjectSizeInBytes(event));
                 OUTPUT.writeObject(event);
                 OUTPUT.flush();
             }

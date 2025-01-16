@@ -4,7 +4,7 @@ package br.com.introcdc.connect.server.components;
  */
 
 import br.com.introcdc.connect.server.ConnectServer;
-import br.com.introcdc.connect.server.ConnectServerGUI;
+import br.com.introcdc.connect.server.gui.ServerGUI;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -87,13 +87,13 @@ public class ServerImageComponents {
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
 
         // Se DARK_MODE estiver habilitado, podemos forçar fundo escuro
-        if (ConnectServerGUI.DARK_MODE) {
+        if (ServerGUI.DARK_MODE) {
             controlPanel.setBackground(new Color(60, 63, 65));
         }
 
         if (screen) {
             // ---- Botão "Parar" ----
-            SCREEN_STOP = ConnectServerGUI.createButton("Parar Transmissão");
+            SCREEN_STOP = ServerGUI.createButton("Parar Transmissão");
             SCREEN_STOP.addActionListener(e -> {
                 ConnectServer.handleCommand("screen");
                 SCREEN_STOP.setEnabled(false);
@@ -104,7 +104,7 @@ public class ServerImageComponents {
             controlPanel.add(SCREEN_STOP);
 
             // ---- Botão "Controle Remoto" ----
-            ServerControlComponents.CONTROL_BUTTON = ConnectServerGUI.createButton("Controle Remoto");
+            ServerControlComponents.CONTROL_BUTTON = ServerGUI.createButton("Controle Remoto");
             if (ServerControlComponents.CONTROL) {
                 ServerControlComponents.CONTROL_BUTTON.setBackground(Color.GREEN);
             } else {
@@ -120,7 +120,7 @@ public class ServerImageComponents {
             controlPanel.add(ServerControlComponents.CONTROL_BUTTON);
 
             // ---- Botão "Mover Mouse" ----
-            ServerControlComponents.MOUSE_MOVE_BUTTON = ConnectServerGUI.createButton("Mover Mouse");
+            ServerControlComponents.MOUSE_MOVE_BUTTON = ServerGUI.createButton("Mover Mouse");
             ServerControlComponents.MOUSE_MOVE_BUTTON.setFocusable(false);
             if (ServerControlComponents.MOUSE_MOVE) {
                 ServerControlComponents.MOUSE_MOVE_BUTTON.setBackground(Color.GREEN);
@@ -136,7 +136,7 @@ public class ServerImageComponents {
             controlPanel.add(ServerControlComponents.MOUSE_MOVE_BUTTON);
 
             // ---- Botão "Auto Mover" ----
-            ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON = ConnectServerGUI.createButton("Auto Mover");
+            ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON = ServerGUI.createButton("Auto Mover");
             ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON.setFocusable(false);
             if (ServerControlComponents.MOUSE_MOVE_CLICK) {
                 ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON.setBackground(Color.GREEN);
@@ -152,7 +152,7 @@ public class ServerImageComponents {
             controlPanel.add(ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON);
 
             // ---- Botão "Mouse" ----
-            ServerControlComponents.MOUSE_BUTTON = ConnectServerGUI.createButton("Mouse");
+            ServerControlComponents.MOUSE_BUTTON = ServerGUI.createButton("Mouse");
             ServerControlComponents.MOUSE_BUTTON.setFocusable(false);
             if (ServerControlComponents.MOUSE) {
                 ServerControlComponents.MOUSE_BUTTON.setBackground(Color.GREEN);
@@ -168,7 +168,7 @@ public class ServerImageComponents {
             controlPanel.add(ServerControlComponents.MOUSE_BUTTON);
 
             // ---- Botão "Teclado" ----
-            ServerControlComponents.KEYBOARD_BUTTON = ConnectServerGUI.createButton("Teclado");
+            ServerControlComponents.KEYBOARD_BUTTON = ServerGUI.createButton("Teclado");
             ServerControlComponents.KEYBOARD_BUTTON.setFocusable(false);
             if (ServerControlComponents.KEYBOARD) {
                 ServerControlComponents.KEYBOARD_BUTTON.setBackground(Color.GREEN);
@@ -184,7 +184,7 @@ public class ServerImageComponents {
             controlPanel.add(ServerControlComponents.KEYBOARD_BUTTON);
         } else {
             // ---- Botão "Parar" ----
-            WEBCAM_STOP = ConnectServerGUI.createButton("Parar Transmissão");
+            WEBCAM_STOP = ServerGUI.createButton("Parar Transmissão");
             WEBCAM_STOP.setFocusable(false);
             WEBCAM_STOP.addActionListener(e -> {
                 ConnectServer.handleCommand("webcam");
@@ -195,10 +195,10 @@ public class ServerImageComponents {
             controlPanel.add(WEBCAM_STOP);
         }
 
-        JButton gcButton = ConnectServerGUI.createButton("Liberar Memória");
+        JButton gcButton = ServerGUI.createButton("Liberar Memória");
         gcButton.setFocusable(false);
         gcButton.addActionListener(e -> {
-            ConnectServerGUI.sendDirectCommand("gc");
+            ServerGUI.sendDirectCommand("gc");
             label.requestFocusInWindow();
         });
         controlPanel.add(gcButton);

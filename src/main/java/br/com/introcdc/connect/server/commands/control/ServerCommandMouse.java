@@ -3,7 +3,7 @@ package br.com.introcdc.connect.server.commands.control;
  * Written by IntroCDC, Bruno Coêlho at 15/01/2025 - 18:33
  */
 
-import br.com.introcdc.connect.server.ConnectServerGUI;
+import br.com.introcdc.connect.server.gui.ServerGUI;
 import br.com.introcdc.connect.server.command.ServerCommand;
 import br.com.introcdc.connect.server.components.ServerControlComponents;
 
@@ -22,8 +22,8 @@ public class ServerCommandMouse extends ServerCommand {
             ServerControlComponents.MOUSE = true;
             msg("Enviar cliques do mouse ativado!");
         }
-        ConnectServerGUI.toggleColor(ServerControlComponents.MOUSE_BUTTON, ServerControlComponents.MOUSE);
-        ConnectServerGUI.toggleColor(ConnectServerGUI.MOUSE, ServerControlComponents.MOUSE);
+        ServerGUI.toggleColor(ServerControlComponents.MOUSE_BUTTON, ServerControlComponents.MOUSE);
+        ServerGUI.toggleColor(ServerGUI.MOUSE, ServerControlComponents.MOUSE);
     }
 
 }

