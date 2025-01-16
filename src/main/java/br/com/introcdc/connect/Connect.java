@@ -21,10 +21,13 @@ public class Connect {
         PORT + 7: Transmissão de áudio (cliente para servidor)
         PORT + 8: Transmissão de áudio (servidor para cliente)
      */
-    public static final String IP = "local.introcdc.com";
+    public static String IP = "local.introcdc.com";
     public static final int PORT = 12345;
 
     public static void main(String[] args) {
+        if (args.length == 1) {
+            IP = args[0];
+        }
         if (!FileComponents.getFileName().equalsIgnoreCase("ConnectServer.jar")) {
             ConnectClient.startClient();
         } else {

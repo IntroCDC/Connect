@@ -12,6 +12,7 @@ import br.com.introcdc.connect.server.components.ServerFileComponents;
 import br.com.introcdc.connect.server.connection.ClientHandler;
 import br.com.introcdc.connect.server.connection.SocketKeepAlive;
 
+import java.io.File;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -76,6 +77,7 @@ public class ConnectServer {
     }
 
     public static void startServer() {
+        new File("connect").mkdir();
         ConnectServerGUI.showGUI();
         ServerCommandEnum.registerCommands();
         new Thread(ServerControlComponents::startControlServer).start();
