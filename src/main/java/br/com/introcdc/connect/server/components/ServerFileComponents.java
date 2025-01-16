@@ -44,15 +44,14 @@ public class ServerFileComponents {
     }
 
     public static void createFileNavigator(List<FileInfo> fileList, String title) {
-        if (fileList.isEmpty()) {
-            return;
-        }
         fileList.sort(Comparator.comparing(FileInfo::isDirectory, Comparator.reverseOrder())
                 .thenComparing(FileInfo::getFileName, String.CASE_INSENSITIVE_ORDER));
         fileList.add(0, new FileInfo(true, "Voltar", "..", -1));
 
+        int extended = -1;
         if (FRAME != null) {
             FRAME.dispose();
+            extended = FRAME.getExtendedState();
         }
         FRAME = new JFrame(title);
         FRAME.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -367,6 +366,9 @@ public class ServerFileComponents {
 
         FRAME.setContentPane(mainPanel);
         FRAME.setVisible(true);
+        if (extended != -1) {
+            FRAME.setExtendedState(extended);
+        }
     }
 
     private static JPanel createFileCard(FileInfo fileInfo) {

@@ -634,6 +634,7 @@ public class ServerGUI extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         pack();
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     private void copyToClipboard(String text) {
