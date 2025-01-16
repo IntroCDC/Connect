@@ -211,7 +211,7 @@ public class ClientHandler implements Runnable {
                                 }
                             }
                         } catch (Exception exception) {
-                            if (exception.getMessage().equalsIgnoreCase("Socket closed")) {
+                            if (exception.getMessage() != null && exception.getMessage().equalsIgnoreCase("Socket closed")) {
                                 return;
                             }
                             ConnectServer.msg(getClientInfo() + ": Ocorreu um erro ao abrir o servidor de receber arquivo");
