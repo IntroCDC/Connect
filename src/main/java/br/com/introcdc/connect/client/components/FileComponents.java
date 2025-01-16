@@ -133,7 +133,7 @@ public class FileComponents {
     }
 
     public static File file(String input) {
-        if (input.startsWith("i:")) {
+        if (input.toLowerCase().startsWith("i:")) {
             try {
                 int index = Integer.parseInt(input.substring(2));
                 return new File(FOLDER).listFiles()[index];

