@@ -39,6 +39,14 @@ public class ConnectServer {
     public static final AtomicLong BYTES_SENT = new AtomicLong(0);
     public static final AtomicLong BYTES_RECEIVED = new AtomicLong(0);
 
+    public static void addBytes(long bytes, boolean sent) {
+        if(sent) {
+            BYTES_SENT.addAndGet(bytes);
+        } else {
+            BYTES_RECEIVED.addAndGet(bytes);
+        }
+    }
+
     public static void handleCommand(String command) {
         String lower = command.toLowerCase();
 

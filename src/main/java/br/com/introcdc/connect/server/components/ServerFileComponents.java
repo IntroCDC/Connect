@@ -159,7 +159,7 @@ public class ServerFileComponents {
                                 int bytesRead;
                                 while ((bytesRead = bis.read(buffer)) != -1) {
                                     dos.write(buffer, 0, bytesRead);
-                                    ConnectServer.BYTES_SENT.addAndGet(bytesRead);
+                                    ConnectServer.addBytes(fileToSend.length(), true);
                                 }
                             } catch (Exception exception) {
                                 ConnectServer.msg("Ocorreu um erro ao enviar um arquivo via socket pós conexão!");

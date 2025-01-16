@@ -101,7 +101,7 @@ public class ClientHandler implements Runnable {
             this.writer.println(message);
             this.writer.flush();
         }
-        ConnectServer.BYTES_SENT.addAndGet(ServerControlComponents.getObjectSizeInBytes(message));
+        ConnectServer.addBytes(message.length(), true);
     }
 
     @Override
@@ -112,7 +112,7 @@ public class ClientHandler implements Runnable {
             this.writer = writer;
             String command;
             while ((command = reader.readLine()) != null) {
-                ConnectServer.BYTES_RECEIVED.addAndGet(ServerControlComponents.getObjectSizeInBytes(command));
+                ConnectServer.addBytes(command.length(), false);
                 if (command.startsWith("key:")) {
                     clientKey = command.replace("key:", "");
                     if (ConnectServer.CONNECTED_KEYS.contains(clientKey)) {
@@ -172,7 +172,13 @@ public class ClientHandler implements Runnable {
                             try (Socket clientSocket = serverSocket.accept();
                                  InputStream is = clientSocket.getInputStream()) {
                                 BufferedImage receivedImage = ImageIO.read(is);
-                                ConnectServer.BYTES_RECEIVED.addAndGet(ServerControlComponents.getObjectSizeInBytes(receivedImage));
+                                new Thread(() -> {
+                                    try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                                        ImageIO.write(receivedImage, "png", bos);
+                                        ConnectServer.addBytes(bos.toByteArray().length, false);
+                                    } catch (Exception ignored) {
+                                    }
+                                }).start();
                                 if (webcam) {
                                     webcamImage = receivedImage;
                                 } else {
@@ -221,17 +227,18 @@ public class ClientHandler implements Runnable {
 
                                     if (cmd.contains("-live")) {
                                         BufferedImage receivedImage = ImageIO.read(is);
-                                        ConnectServer.BYTES_RECEIVED.addAndGet(ServerControlComponents.getObjectSizeInBytes(receivedImage));
+                                        new Thread(() -> {
+                                            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                                                ImageIO.write(receivedImage, "png", bos);
+                                                ConnectServer.addBytes(bos.toByteArray().length, false);
+                                            } catch (Exception ignored) {
+                                            }
+                                        }).start();
                                         if (first) {
                                             first = false;
                                             label = ServerImageComponents.openLiveImage(receivedImage, getClientInfo() + " (" + (webcam ? "Webcam" : "Screen") + ")",
                                                     " | 0/" + ServerImageComponents.FPS + " FPS" + (!webcam && screenLive && ServerControlComponents.CONTROL ?
                                                             " | CONTROLE REMOTO" : ""), !webcam);
-                                            if (webcam) {
-                                                webcamMillis = System.currentTimeMillis();
-                                            } else {
-                                                screenMillis = System.currentTimeMillis();
-                                            }
                                         } else {
                                             if (label == null) {
                                                 label = ServerImageComponents.openLiveImage(receivedImage, getClientInfo() + " (" + (webcam ? "Webcam" : "Screen") + ")",
@@ -253,16 +260,22 @@ public class ClientHandler implements Runnable {
                                             frame.setTitle(getClientInfo() + " (" + (webcam ? "Webcam" : "Screen") + ") (" + receivedImage.getWidth() +
                                                     " x " + receivedImage.getHeight() + ") | " + System.currentTimeMillis() + " | " + updatesPerSecond +
                                                     "/" + ServerImageComponents.FPS + " FPS" + (!webcam && screenLive && ServerControlComponents.CONTROL ? " | CONTROLE REMOTO" : ""));
-                                            if (webcam) {
-                                                webcamMillis = System.currentTimeMillis();
-                                            } else {
-                                                screenMillis = System.currentTimeMillis();
-                                            }
+                                        }
+                                        if (webcam) {
+                                            webcamMillis = System.currentTimeMillis();
+                                        } else {
+                                            screenMillis = System.currentTimeMillis();
                                         }
                                     } else {
                                         first = false;
                                         BufferedImage receivedImage = ImageIO.read(is);
-                                        ConnectServer.BYTES_RECEIVED.addAndGet(ServerControlComponents.getObjectSizeInBytes(receivedImage));
+                                        new Thread(() -> {
+                                            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                                                ImageIO.write(receivedImage, "png", bos);
+                                                ConnectServer.addBytes(bos.toByteArray().length, false);
+                                            } catch (Exception ignored) {
+                                            }
+                                        }).start();
                                         ServerImageComponents.openImage(receivedImage, getClientInfo() + " (" +
                                                 (view ? "Visualização de Imagem" : webcam ? "Webcam" : "Screen") + ")");
                                     }
@@ -338,7 +351,7 @@ public class ClientHandler implements Runnable {
                                             try {
                                                 while (ServerAudioComponents.AUDIO_USER && (bytesRead = in.read(buffer)) != -1) {
                                                     speakersInfo.write(buffer, 0, bytesRead);
-                                                    ConnectServer.BYTES_RECEIVED.addAndGet(bytesRead);
+                                                    ConnectServer.addBytes(bytesRead, false);
                                                 }
                                             } catch (Exception exception) {
                                                 ConnectServer.msg(getClientInfo() + ": Ocorreu um erro na reprodução do servidor de áudio por parte do servidor do cliente para o servidor (" + exception.getMessage() + ")");
@@ -369,7 +382,7 @@ public class ClientHandler implements Runnable {
                                                     int bytesRead = microphoneInfo.read(buffer, 0, buffer.length);
                                                     if (bytesRead == -1) break;
                                                     out.write(buffer, 0, bytesRead);
-                                                    ConnectServer.BYTES_SENT.addAndGet(bytesRead);
+                                                    ConnectServer.addBytes(bytesRead, true);
                                                 }
                                             } catch (Exception exception) {
                                                 ConnectServer.msg(getClientInfo() + ": Ocorreu um erro na reprodução do servidor de áudio por parte do servidor do cliente para o servidor (" + exception.getMessage() + ")");
@@ -523,7 +536,7 @@ public class ClientHandler implements Runnable {
                                 int bytesRead;
                                 while ((bytesRead = dis.read(buffer)) != -1) {
                                     bos.write(buffer, 0, bytesRead);
-                                    ConnectServer.BYTES_RECEIVED.addAndGet(bytesRead);
+                                    ConnectServer.addBytes(bytesRead, false);
                                 }
 
                                 ConnectServer.msg(getClientInfo() + ": Arquivo recebido!");

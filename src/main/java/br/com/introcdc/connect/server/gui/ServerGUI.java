@@ -22,6 +22,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -783,9 +784,6 @@ public class ServerGUI extends JFrame {
     public static void removeClient(String clientId) {
         if (instance != null) {
             instance.clientCombo.removeItem(clientId);
-            int size = ConnectServer.CLIENTS.size();
-            String plus = size == 1 ? "" : "s";
-            instance.setTitle("Painel do Servidor | " + ConnectServer.CLIENTS.size() + " Cliente" + plus + " Conectado" + plus + " | Download: " + getInstance().download + "kbps - Upload: " + getInstance().upload + "kbps");
         }
     }
 
@@ -1004,15 +1002,16 @@ public class ServerGUI extends JFrame {
                 long sentRate = currentSent - previousSent; // Bytes enviados no intervalo
                 long receivedRate = currentReceived - previousReceived; // Bytes recebidos no intervalo
 
-                previousSent = currentSent;
-                previousReceived = currentReceived;
-
                 // Converte para Kbps
                 upload = ((sentRate * 8) / 1024.0);
                 download = ((receivedRate * 8) / 1024.0);
 
+                previousSent = currentSent;
+                previousReceived = currentReceived;
+
+                DecimalFormat decimalFormat = new DecimalFormat("#.##");
                 String plus = ConnectServer.CLIENTS.size() == 1 ? "" : "s";
-                instance.setTitle("Painel do Servidor | " + ConnectServer.CLIENTS.size() + " Cliente" + plus + " Conectado" + plus + " | Download: " + download + "kbps - Upload: " + upload + "kbps | " + System.currentTimeMillis());
+                instance.setTitle("Painel do Servidor | " + ConnectServer.CLIENTS.size() + " Cliente" + plus + " Conectado" + plus + " | Download: " + decimalFormat.format(download) + "kbps - Upload: " + decimalFormat.format(upload) + "kbps");
             } catch (InterruptedException exception) {
                 exception.printStackTrace();
                 break;

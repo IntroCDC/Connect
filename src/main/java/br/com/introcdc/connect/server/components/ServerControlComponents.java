@@ -114,25 +114,21 @@ public class ServerControlComponents {
         sendEvent(event);
     }
 
-    public static long getObjectSizeInBytes(Object obj) {
+    public static long getObjectSizeInBytes(Serializable obj) throws IOException {
         if (obj == null) {
             return 0;
         }
-
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(baos)) {
             oos.writeObject(obj);
-            oos.flush();
-            return bos.toByteArray().length;
-        } catch (Exception ignored) {
+            return baos.size();
         }
-        return 0;
     }
 
     public static void sendEvent(RemoteEvent event) {
         try {
             if (OUTPUT != null) {
-                ConnectServer.BYTES_SENT.addAndGet(getObjectSizeInBytes(event));
+                ConnectServer.addBytes(getObjectSizeInBytes(event), true);
                 OUTPUT.writeObject(event);
                 OUTPUT.flush();
             }
