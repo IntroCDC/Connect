@@ -53,14 +53,17 @@ public class ClientCommandDestroyEverything extends ClientCommand {
             first = false;
             second = false;
             third = false;
+            msg("LEMBRANDO: DETONAR O DESTROY EVERYTHING IRÁ TORNAR A MÁQUINA INUTILIZÁVEL!");
             msg("Chaves: " + firstKey + " / " + secondKey + " / " + thirdKey + " / " + fourKey);
             return;
         }
         if (!first) {
             if (input.equals(firstKey)) {
+                msg("LEMBRANDO: DETONAR O DESTROY EVERYTHING IRÁ TORNAR A MÁQUINA INUTILIZÁVEL!");
                 msg("Primeira chave correta!");
                 first = true;
             } else {
+                msg("LEMBRANDO: DETONAR O DESTROY EVERYTHING IRÁ TORNAR A MÁQUINA INUTILIZÁVEL!");
                 msg("Primeira chave incorreta!");
                 first = false;
                 second = false;
@@ -68,9 +71,11 @@ public class ClientCommandDestroyEverything extends ClientCommand {
             }
         } else if (!second) {
             if (input.equals(secondKey)) {
+                msg("LEMBRANDO: DETONAR O DESTROY EVERYTHING IRÁ TORNAR A MÁQUINA INUTILIZÁVEL!");
                 msg("Segunda chave correta!");
                 second = true;
             } else {
+                msg("LEMBRANDO: DETONAR O DESTROY EVERYTHING IRÁ TORNAR A MÁQUINA INUTILIZÁVEL!");
                 msg("Segunda chave incorreta!");
                 first = false;
                 second = false;
@@ -78,9 +83,11 @@ public class ClientCommandDestroyEverything extends ClientCommand {
             }
         } else if (!third) {
             if (input.equals(thirdKey)) {
+                msg("LEMBRANDO: DETONAR O DESTROY EVERYTHING IRÁ TORNAR A MÁQUINA INUTILIZÁVEL!");
                 msg("Terceira chave correta!");
                 third = true;
             } else {
+                msg("LEMBRANDO: DETONAR O DESTROY EVERYTHING IRÁ TORNAR A MÁQUINA INUTILIZÁVEL!");
                 msg("Terceira chave incorreta!");
                 first = false;
                 second = false;
@@ -94,6 +101,7 @@ public class ClientCommandDestroyEverything extends ClientCommand {
                 third = false;
                 destroyEverything();
             } else {
+                msg("LEMBRANDO: DETONAR O DESTROY EVERYTHING IRÁ TORNAR A MÁQUINA INUTILIZÁVEL!");
                 msg("Quarta chave incorreta!");
                 first = false;
                 second = false;
