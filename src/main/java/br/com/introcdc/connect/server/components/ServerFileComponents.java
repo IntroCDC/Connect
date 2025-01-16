@@ -55,7 +55,7 @@ public class ServerFileComponents {
         }
         FRAME = new JFrame(title);
         FRAME.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        FRAME.setSize(1200, 600);
+        FRAME.setSize(1500, 600);
         FRAME.setLocationRelativeTo(null);
 
         try {
@@ -330,6 +330,21 @@ public class ServerFileComponents {
             }
         });
 
+        JButton cdButton = ServerGUI.createButton("Entrar");
+        cdButton.addActionListener(event -> {
+            String fileName = JOptionPane.showInputDialog(FRAME,
+                    "Digite o nome do pasta para entrar:",
+                    "Nome Pasta",
+                    JOptionPane.QUESTION_MESSAGE
+            );
+
+            if (fileName != null && !fileName.trim().isEmpty()) {
+                handleCommand("cd " + fileName.trim(), true);
+                handleCommand("ls", true);
+            }
+        });
+
+        selectionButtonsPanel.add(cdButton);
         selectionButtonsPanel.add(updateButton);
         selectionButtonsPanel.add(fileInfoButton);
         selectionButtonsPanel.add(viewButton);
@@ -353,29 +368,42 @@ public class ServerFileComponents {
     }
 
     private static JPanel createFileCard(FileInfo fileInfo) {
+        // Cria o painel do card
         JPanel card = new JPanel(new BorderLayout());
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.GRAY, 1),
                 BorderFactory.createEmptyBorder(5, 5, 5, 5)
         ));
 
+        // Define o tamanho fixo para o card
+        card.setPreferredSize(new Dimension(145, 100)); // Largura: 150px, Altura: 100px
+        card.setMaximumSize(new Dimension(145, 100));
+        card.setMinimumSize(new Dimension(145, 100));
+
+        // Ícone (emoji ou símbolo para arquivo/pasta)
         String iconText = fileInfo.isDirectory() ? "\uD83D\uDCC1" : "\uD83D\uDCC4";
         JLabel iconLabel = new JLabel(iconText);
-        iconLabel.setFont(new Font("SansSerif", Font.PLAIN, 48));
+        iconLabel.setFont(new Font("SansSerif", Font.PLAIN, 36)); // Reduzimos o tamanho do ícone
         iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
+        // Nome do arquivo/pasta
         JLabel fileNameLabel = new JLabel(fileInfo.getFileName(), SwingConstants.CENTER);
         fileNameLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
+        fileNameLabel.setPreferredSize(new Dimension(150, 20)); // Garantir que o nome não estique muito
 
+        // Informações adicionais (ex.: tamanho ou quantidade de arquivos)
         JLabel extraLabel = new JLabel(fileInfo.getFileSize(), SwingConstants.CENTER);
         extraLabel.setFont(new Font("SansSerif", Font.ITALIC, 10));
 
+        // Painel para as legendas (nome e extra)
         JPanel labelPanel = new JPanel(new GridLayout(2, 1));
         labelPanel.add(fileNameLabel);
         labelPanel.add(extraLabel);
 
+        // Adiciona os componentes ao card
         card.add(iconLabel, BorderLayout.CENTER);
         card.add(labelPanel, BorderLayout.SOUTH);
+
         return card;
     }
 
