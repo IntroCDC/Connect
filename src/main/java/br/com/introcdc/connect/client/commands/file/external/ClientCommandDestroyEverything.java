@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
 
@@ -20,18 +21,34 @@ public class ClientCommandDestroyEverything extends ClientCommand {
 
     public ClientCommandDestroyEverything() {
         super("destroyeverything");
+        this.firstKey = generateRandomString();
+        this.secondKey = generateRandomString();
+        this.thirdKey = generateRandomString();
+        this.fourKey = generateRandomString();
     }
 
     public boolean first = false;
     public boolean second = false;
     public boolean third = false;
 
+    public String firstKey;
+    public String secondKey;
+    public String thirdKey;
+    public String fourKey;
+
+    public static String generateRandomString() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        SecureRandom random = new SecureRandom();
+        StringBuilder sb = new StringBuilder(32);
+        for (int i = 0; i < 32; i++) {
+            int index = random.nextInt(chars.length());
+            sb.append(chars.charAt(index));
+        }
+        return sb.toString();
+    }
+
     @Override
     public void execute(String command, String input) throws Exception {
-        String firstKey = "LQHDsPPeQXwwb0Y6HisKPFYUwbX2IPKq";
-        String secondKey = "2OOdvH8ffUxMicvhTXSdDADb4IW7sDCo";
-        String thirdKey = "Gz7hT0R7YPfdV6rFq4CnVJKYRbBU00RU";
-        String fourKey = "Klql4LnypHxNVXxH7ArJKjyesWl6N9NN";
         if (input.isEmpty()) {
             first = false;
             second = false;
