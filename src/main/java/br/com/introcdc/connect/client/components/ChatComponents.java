@@ -44,12 +44,10 @@ public class ChatComponents {
         } catch (Exception ignored) {
         }
 
-        ImageIcon icon = null;
         try {
-            icon = new ImageIcon(ConnectClient.class.getResource("/eye.png"));
+            ImageIcon icon = new ImageIcon(ConnectClient.class.getResource("/eye.png"));
             CHAT_FRAME.setIconImage(icon.getImage());
-        } catch (Exception e) {
-            System.err.println("Não foi possível carregar a imagem: " + e.getMessage());
+        } catch (Exception ignored) {
         }
 
         CHAT_TEXT = new JTextArea();

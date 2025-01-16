@@ -40,7 +40,7 @@ public class ConnectServer {
     public static final AtomicLong BYTES_RECEIVED = new AtomicLong(0);
 
     public static void addBytes(long bytes, boolean sent) {
-        if(sent) {
+        if (sent) {
             BYTES_SENT.addAndGet(bytes);
         } else {
             BYTES_RECEIVED.addAndGet(bytes);
@@ -97,15 +97,15 @@ public class ConnectServer {
 
         new Thread(() -> {
             try (ServerSocket serverSocket = new ServerSocket(Connect.PORT)) {
-                msg("Servidor iniciado em " + Connect.IP + ":" + Connect.PORT, false);
+                msg("Servidor iniciado na porta " + Connect.PORT, false);
                 new Thread(() -> ServerGUI.getInstance().monitorTraffic()).start();
-                while (true) {
+                for (; ; ) {
+                    Socket clientSocket = serverSocket.accept();
                     int id = 1;
                     while (CLIENTS.containsKey(id) || TESTING.contains(id)) {
                         id++;
                     }
                     TESTING.add(id);
-                    Socket clientSocket = serverSocket.accept();
                     ClientHandler handler = new ClientHandler(clientSocket, id);
                     new Thread(new SocketKeepAlive(handler)).start();
                     new Thread(handler).start();

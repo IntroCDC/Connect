@@ -21,19 +21,21 @@ public class ClientCommandListFiles extends ClientCommand {
     @Override
     public void execute(String command, String input) throws Exception {
         File folder = new File(FileComponents.FOLDER);
-        StringBuilder stringBuilder = new StringBuilder("> Pasta " + folder.getAbsolutePath());
-        if (folder.listFiles() == null) {
-            msg("Pasta inválida!");
+        File[] files = folder.listFiles();
+        boolean invalid = files == null;
+        if (invalid) {
+            msg("> Pasta inválida!");
             return;
         }
+        StringBuilder stringBuilder = new StringBuilder("> Pasta " + folder.getAbsolutePath() + " (" + files.length + " arquivos)");
         List<FileInfo> directories = new ArrayList<>();
-        List<FileInfo> files = new ArrayList<>();
+        List<FileInfo> fileArray = new ArrayList<>();
         int index = 0;
         for (File file : folder.listFiles()) {
             if (file.isDirectory()) {
                 directories.add(new FileInfo(file, index));
             } else {
-                files.add(new FileInfo(file, index));
+                fileArray.add(new FileInfo(file, index));
             }
             index++;
         }
@@ -41,9 +43,10 @@ public class ClientCommandListFiles extends ClientCommand {
             File[] fileSel = directory.getFile().listFiles();
             stringBuilder.append("\n/[").append(directory.getIndex()).append("] ").append(directory.getFile().getName()).append(" | ").append(fileSel != null ? fileSel.length : -1).append(" arquivos");
         }
-        for (FileInfo file : files) {
+        for (FileInfo file : fileArray) {
             stringBuilder.append("\n[").append(file.getIndex()).append("] ").append(file.getFile().getName()).append(" | ").append(FormatUtil.formatBytes(file.getFile().length()));
         }
+        stringBuilder.append("\n> Pasta ").append(folder.getAbsolutePath() + " (" + files.length + " arquivos)");
         msg(stringBuilder.toString());
     }
 

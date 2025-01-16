@@ -126,12 +126,10 @@ public class ServerGUI extends JFrame {
         }
 
         // =============== CARREGA ÍCONE (opcional) ===============
-        ImageIcon icon = null;
         try {
-            icon = new ImageIcon(getClass().getResource("/server.png"));
+            ImageIcon icon = new ImageIcon(getClass().getResource("/server.png"));
             setIconImage(icon.getImage());
-        } catch (Exception e) {
-            System.err.println("Não foi possível carregar a imagem: " + e.getMessage());
+        } catch (Exception ignored) {
         }
 
         // =============== COR DE FUNDO DA JANELA ===============
@@ -914,8 +912,7 @@ public class ServerGUI extends JFrame {
         try {
             icon = new ImageIcon(getClass().getResource("/eye.png"));
             CONTROL_FRAME.setIconImage(icon.getImage());
-        } catch (Exception e) {
-            System.err.println("Não foi possível carregar a imagem: " + e.getMessage());
+        } catch (Exception ignored) {
         }
 
         // Painel principal para organizar os componentes
@@ -1071,8 +1068,7 @@ public class ServerGUI extends JFrame {
         try {
             icon = new ImageIcon(getClass().getResource("/eye.png"));
             AUDIO_CONTROL.setIconImage(icon.getImage());
-        } catch (Exception e) {
-            System.err.println("Não foi possível carregar a imagem: " + e.getMessage());
+        } catch (Exception ignored) {
         }
 
         JPanel panel = new JPanel();

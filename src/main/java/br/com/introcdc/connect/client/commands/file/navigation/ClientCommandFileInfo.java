@@ -30,7 +30,7 @@ public class ClientCommandFileInfo extends ClientCommand {
         msg("Tipo: " + (file.isFile() ? "Arquivo" : "Pasta"));
         msg(file.isFile() ? "Tamanho: " + FormatUtil.formatBytes(file.length()) : "Arquivos: " + (file.listFiles() != null ? file.listFiles().length : -1));
         msg("Modificado em: " + FileComponents.toDate(file.lastModified()));
-        msg("Permissões: R: " + file.canRead() + " / W: " + file.canWrite() + " / E: " + file.canExecute());
+        msg("Permissoes: R: " + file.canRead() + " / W: " + file.canWrite() + " / E: " + file.canExecute());
     }
 
 }

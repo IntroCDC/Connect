@@ -39,11 +39,11 @@ public class ClientCommandEnterFolder extends ClientCommand {
             msg("Pasta não encontrada!");
             return;
         }
-        if (file.isDirectory()) {
+        if (file.isDirectory() && file.listFiles() != null) {
             FileComponents.FOLDER = file.getAbsolutePath();
             msg("Acessado: " + file.getAbsolutePath());
         } else {
-            msg("Não é possível acessar um arquivo!");
+            msg("Não é possível acessar esta pasta!");
         }
     }
 

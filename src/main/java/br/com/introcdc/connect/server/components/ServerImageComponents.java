@@ -42,12 +42,10 @@ public class ServerImageComponents {
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
 
-        ImageIcon icon = null;
         try {
-            icon = new ImageIcon(ConnectServer.class.getResource("/eye.png"));
+            ImageIcon icon = new ImageIcon(ConnectServer.class.getResource("/eye.png"));
             frame.setIconImage(icon.getImage());
-        } catch (Exception e) {
-            System.err.println("Não foi possível carregar a imagem: " + e.getMessage());
+        } catch (Exception ignored) {
         }
 
         try {
@@ -296,8 +294,7 @@ public class ServerImageComponents {
         try {
             ImageIcon icon = new ImageIcon(ConnectServer.class.getResource("/eye.png"));
             frame.setIconImage(icon.getImage());
-        } catch (Exception e) {
-            System.err.println("Não foi possível carregar a imagem: " + e.getMessage());
+        } catch (Exception ignored) {
         }
 
         return label;
