@@ -122,13 +122,17 @@ public class ClientHandler implements Runnable {
                 if (command.startsWith("connect:")) {
                     String info = command.replace("connect:", "");
                     String[] args = info.split("\\|");
+                    if (args.length != 4) {
+                        closeConnection("Conexão com o cliente " + getClientIP() + " não identificada! (" + this.location + ")");
+                        ServerAudioComponents.generateBeep(100, 250, true);
+                        break;
+                    }
                     clientKey = args[0];
                     clientName = args[1];
                     installDate = args[2];
                     os = args[3];
                     if (ConnectServer.CONNECTED_KEYS.contains(clientKey) && ConnectServer.DISCONNECT_DUPLICATE) {
-                        clientSocket.close();
-                        return;
+                        break;
                     }
                     auth = true;
                     ConnectServer.CONNECTED_KEYS.add(clientKey);
@@ -177,9 +181,9 @@ public class ClientHandler implements Runnable {
                         }
                     }).start(), 1, TimeUnit.SECONDS);
                 } else if (!auth) {
-                    closeConnection("Conexão com o cliente " + getClientIP() + " não identificada! (" + command + " / " + this.location + ")");
+                    closeConnection("Conexão com o cliente " + getClientIP() + " não identificada! (" + this.location + ")");
                     ServerAudioComponents.generateBeep(100, 250, true);
-                    return;
+                    break;
                 } else if (command.equalsIgnoreCase("ping")) {
                     ConnectServer.msg(getClientInfo() + ": " + (System.currentTimeMillis() - pingTest) + "ms");
                 } else if (command.startsWith("chat-msg:")) {
