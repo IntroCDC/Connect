@@ -116,7 +116,7 @@ public class ConnectServer {
                     EXECUTOR.schedule(() -> TESTING.remove(removeId), 1, TimeUnit.SECONDS);
                 }
             } catch (Exception exception) {
-                exception.printStackTrace();
+                msg("Ocorreu um erro ao receber uma conexão! (" + exception.getMessage() + ")");
             }
         }).start();
     }

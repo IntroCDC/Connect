@@ -68,7 +68,7 @@ public class ServerAudioComponents {
                 line.drain();
                 line.close();
             } catch (Exception exception) {
-                exception.printStackTrace();
+                ConnectServer.msg("Ocorreu um erro ao gerar um beep! (" + exception.getMessage() + ")");
             }
         };
         if (thread) {

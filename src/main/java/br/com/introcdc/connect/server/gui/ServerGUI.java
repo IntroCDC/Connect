@@ -1022,7 +1022,7 @@ public class ServerGUI extends JFrame {
                 String plus = ConnectServer.CLIENTS.size() == 1 ? "" : "s";
                 instance.setTitle("Painel do Servidor | " + ConnectServer.CLIENTS.size() + " Cliente" + plus + " Conectado" + plus + " | Download: " + decimalFormat.format(download) + "kbps - Upload: " + decimalFormat.format(upload) + "kbps");
             } catch (InterruptedException exception) {
-                exception.printStackTrace();
+                ConnectServer.msg("Ocorreu um erro ao atualizar o monitor de uso de rede! (" + exception.getMessage() + ")");
                 break;
             }
         }

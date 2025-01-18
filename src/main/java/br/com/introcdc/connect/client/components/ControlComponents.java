@@ -36,7 +36,6 @@ public class ControlComponents {
         } catch (Exception ignored) {
             ConnectClient.msg("updateinfo 0 0 " + getActiveWindowTitle());
         }
-        ConnectClient.msg("rping");
     }
 
     public static void typeString(Robot robot, String text) {
