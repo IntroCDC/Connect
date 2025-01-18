@@ -29,6 +29,7 @@ public class ConnectClient {
     // Message Variables
     public static PrintWriter WRITER;
     public static boolean DEBUG = false;
+    public static final boolean LOCAL_DEBUG = false;
 
     /**
      * Start Client
@@ -64,6 +65,9 @@ public class ConnectClient {
      * Send Message to Server
      */
     public static void msg(String message) {
+        if (LOCAL_DEBUG) {
+            System.out.println("Enviando: " + message);
+        }
         try {
             WRITER.println(message);
             WRITER.flush();
@@ -108,6 +112,9 @@ public class ConnectClient {
         try {
             String serverMessage;
             while ((serverMessage = reader.readLine()) != null) {
+                if (LOCAL_DEBUG) {
+                    System.out.println("Recebido: " + serverMessage);
+                }
                 ClientCommand.handleCommand(serverMessage);
             }
         } catch (Exception exception) {

