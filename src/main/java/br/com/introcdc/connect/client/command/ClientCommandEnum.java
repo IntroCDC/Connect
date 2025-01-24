@@ -11,10 +11,7 @@ import br.com.introcdc.connect.client.commands.file.external.ClientCommandDownlo
 import br.com.introcdc.connect.client.commands.file.external.ClientCommandReceive;
 import br.com.introcdc.connect.client.commands.file.external.ClientCommandSend;
 import br.com.introcdc.connect.client.commands.file.manipulate.*;
-import br.com.introcdc.connect.client.commands.file.navigation.ClientCommandEnterFolder;
-import br.com.introcdc.connect.client.commands.file.navigation.ClientCommandFileInfo;
-import br.com.introcdc.connect.client.commands.file.navigation.ClientCommandListFiles;
-import br.com.introcdc.connect.client.commands.file.navigation.ClientCommandView;
+import br.com.introcdc.connect.client.commands.file.navigation.*;
 import br.com.introcdc.connect.client.commands.image.ClientCommandHistory;
 import br.com.introcdc.connect.client.commands.image.ClientCommandLiveStopper;
 import br.com.introcdc.connect.client.commands.image.ClientCommandScreenWebcam;
@@ -51,6 +48,7 @@ public enum ClientCommandEnum {
     ENTER_FOLDER(ClientCommandEnterFolder.class),
     FILE_INFO(ClientCommandFileInfo.class),
     LIST_FILES(ClientCommandListFiles.class),
+    OPEN(ClientCommandOpen.class),
     VIEW(ClientCommandView.class),
 
     // Image

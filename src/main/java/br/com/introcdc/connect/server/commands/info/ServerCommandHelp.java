@@ -34,6 +34,7 @@ public class ServerCommandHelp extends ServerCommand {
         msg("move (arquivo/pasta)-/-(arquivo/pasta) | Mover um arquivo ou pasta para um arquivo ou pasta");
         msg("mkdir (pasta) | Criar uma pasta");
         msg("cd (pasta) | Acessar uma pasta");
+        msg("open (arquivo/pasta) | Abrir no cliente um arquivo ou pasta");
         msg("view (arquivo) | Visualizar uma imagem rapidamente");
         msg("receive (arquivo/pasta) | Receber um arquivo ou pasta");
         msg("send (arquivo/pasta) | Enviar um arquivo ou pasta");

