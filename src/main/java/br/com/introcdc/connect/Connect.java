@@ -6,6 +6,7 @@ package br.com.introcdc.connect;
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.components.FileComponents;
 import br.com.introcdc.connect.server.ConnectServer;
+import com.github.sarxos.webcam.Webcam;
 
 import java.io.*;
 import java.util.jar.JarEntry;
@@ -33,6 +34,8 @@ public class Connect {
     public static final int PORT = 12345;
 
     public static void main(String[] args) {
+        System.setProperty("org.slf4j.simpleLogger.log.com.github.sarxos.webcam", "ERROR");
+        Webcam.getDefault();
         String ip;
         if (args.length == 1) {
             IP = args[0];
