@@ -13,6 +13,7 @@ import java.util.Map;
 public enum ServerCommandEnum {
     // Control
     FPS(ServerCommandFPS.class),
+    FUNCTIONS_PANEL(ServerCommandFunctionsPanel.class),
     KEYBOARD_CONTROL(ServerCommandKeyboardControl.class),
     MOUSE(ServerCommandMouse.class),
     MOUSE_MOVE(ServerCommandMouseMove.class),

