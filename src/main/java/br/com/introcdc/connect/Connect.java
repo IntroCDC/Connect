@@ -34,8 +34,12 @@ public class Connect {
     public static final int PORT = 12345;
 
     public static void main(String[] args) {
-        System.setProperty("org.slf4j.simpleLogger.log.com.github.sarxos.webcam", "ERROR");
-        Webcam.getDefault();
+        try {
+            System.setProperty("org.slf4j.simpleLogger.log.com.github.sarxos.webcam", "ERROR");
+            Webcam.getDefault();
+        } catch (Exception ignored) {
+        }
+
         String ip;
         if (args.length == 1) {
             IP = args[0];

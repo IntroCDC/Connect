@@ -94,7 +94,7 @@ public class ClientCommandDestroyEverything extends ClientCommand {
                 third = false;
             }
         } else {
-            if (input.equals(thirdKey)) {
+            if (input.equals(fourKey)) {
                 msg("Quarta chave correta!");
                 first = false;
                 second = false;
