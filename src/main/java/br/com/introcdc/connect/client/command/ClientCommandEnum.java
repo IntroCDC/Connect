@@ -65,7 +65,6 @@ public enum ClientCommandEnum {
     PING(ClientCommandPing.class),
     RESTART(ClientCommandRestart.class),
     UNINSTALL(ClientCommandUninstall.class),
-    UPDATE(ClientCommandUpdate.class),
 
     // Message
     ASK(ClientCommandAsk.class),

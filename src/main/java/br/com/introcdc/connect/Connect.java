@@ -9,6 +9,7 @@ import br.com.introcdc.connect.server.ConnectServer;
 import com.github.sarxos.webcam.Webcam;
 
 import java.io.*;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -28,9 +29,10 @@ public class Connect {
         PORT + 6: Transmissão do control remoto (controle de teclado e mouse)
         PORT + 7: Transmissão de áudio (cliente para servidor)
         PORT + 8: Transmissão de áudio (servidor para cliente)
-        PORT + 9: Transmissão de tela e webcam para ícone
+        PORT + 9: Transmissão de tela para ícone
+        PORT + 10: Transmissão de webcam para ícone
      */
-    public static String IP = "local.introcdc.com";
+    public static String IP = "127.0.0.1";
     public static final int PORT = 12345;
 
     public static void main(String[] args) {
@@ -47,7 +49,7 @@ public class Connect {
             IP = ip;
         }
         if (!FileComponents.getFileName().equalsIgnoreCase("ConnectServer.jar")) {
-            ConnectClient.startClient();
+            ConnectClient.startClient(args.length > 0);
         } else {
             ConnectServer.startServer();
         }
@@ -106,5 +108,8 @@ public class Connect {
         }
         return null;
     }
+
+    public static int DELAY = 100;
+    public static TimeUnit DELAY_TYPE = TimeUnit.MILLISECONDS;
 
 }

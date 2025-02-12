@@ -3,6 +3,7 @@ package br.com.introcdc.connect.client.commands.file.navigation;
  * Written by IntroCDC, Bruno Coêlho at 15/01/2025 - 16:37
  */
 
+import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.command.ClientCommand;
 import br.com.introcdc.connect.client.components.FileComponents;
@@ -11,7 +12,6 @@ import br.com.introcdc.connect.client.components.ImageComponents;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.concurrent.TimeUnit;
 
 public class ClientCommandView extends ClientCommand {
 
@@ -39,7 +39,7 @@ public class ClientCommandView extends ClientCommand {
         msg("Enviando visualização do arquivo " + file.getName() + "...");
         msg("view-image");
         BufferedImage image = ImageIO.read(file);
-        ConnectClient.EXECUTOR.schedule(() -> new Thread(() -> ImageComponents.sendImage(5, image)).start(), 1, TimeUnit.SECONDS);
+        ConnectClient.EXECUTOR.schedule(() -> new Thread(() -> ImageComponents.sendImage(5, image)).start(), Connect.DELAY, Connect.DELAY_TYPE);
     }
 
 }

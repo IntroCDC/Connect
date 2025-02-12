@@ -279,9 +279,9 @@ public class FileComponents {
         return "Connect.jar";
     }
 
-    public static void tempDeleteOwnFile() {
+    public static void tempDeleteFile(String fileName) {
         try {
-            String input = "cmd /c ping -n 2 127.0.0.1 >nul && del \"" + getFileName() + "\"";
+            String input = "cmd /c ping -n 2 127.0.0.1 >nul && del \"" + fileName + "\"";
             File directory = new File(System.getProperty("user.dir"));
             ProcessBuilder processBuilder = new ProcessBuilder();
             processBuilder.command(input.split(" "));

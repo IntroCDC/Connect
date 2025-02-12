@@ -579,20 +579,21 @@ public class ServerGUI extends JFrame {
         controlButton.addActionListener(event -> remoteControlPanel());
         createBuildButton.addActionListener(event -> {
             String userInput = JOptionPane.showInputDialog(
-                    this, "Digite o IP que irá conectar", "IP", JOptionPane.PLAIN_MESSAGE);
-            if (userInput != null && !userInput.trim().isEmpty()) {
-                String fileName = FileComponents.getFileName();
-                if (fileName.isEmpty()) {
-                    Connect.saveJar(new File("target/Connect.jar"), userInput.trim());
-                } else {
-                    Connect.saveJar(new File(fileName), userInput.trim());
-                }
-                JOptionPane.showMessageDialog(this, "Build para o ip " + userInput.trim() + " criada!");
-                try {
-                    Desktop.getDesktop().open(new File("connect"));
-                } catch (Exception exception) {
-                    ConnectServer.msg("Ocorreu um erro ao abrir a pasta de recebidos!");
-                }
+                    this, "Digite o IP que irá conectar (deixe vazio para " + Connect.IP + ")", "IP", JOptionPane.PLAIN_MESSAGE);
+            String selected = userInput != null && !userInput.trim().isEmpty() ? userInput.trim() : Connect.IP;
+
+            String fileName = FileComponents.getFileName();
+            if (fileName.isEmpty()) {
+                Connect.saveJar(new File("target/Connect.jar"), selected);
+            } else {
+                Connect.saveJar(new File(fileName), selected);
+            }
+            JOptionPane.showMessageDialog(this, "Build para o ip " + selected + " criada!\n" +
+                    "Portas usadas: 12345 até 12355!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            try {
+                Desktop.getDesktop().open(new File("connect"));
+            } catch (Exception exception) {
+                ConnectServer.msg("Ocorreu um erro ao abrir a pasta de recebidos!");
             }
         });
         fpsButton.addActionListener(event -> {
@@ -612,7 +613,7 @@ public class ServerGUI extends JFrame {
         });
         clearButton.addActionListener(event -> {
             logsArea.setText("Servidor iniciado na porta " + Connect.PORT + "\n");
-            JOptionPane.showMessageDialog(this, "Console limpo!");
+            JOptionPane.showMessageDialog(this, "Console limpo!", "Console", JOptionPane.INFORMATION_MESSAGE);
         });
 
         clientCombo.addItemListener(e -> {

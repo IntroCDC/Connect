@@ -3,7 +3,6 @@ package br.com.introcdc.connect.client.commands.info;
  * Written by IntroCDC, Bruno Coêlho at 15/01/2025 - 16:07
  */
 
-import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.command.ClientCommand;
 import br.com.introcdc.connect.client.components.FileComponents;
 import com.github.sarxos.webcam.Webcam;

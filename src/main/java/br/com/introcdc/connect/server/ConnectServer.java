@@ -20,7 +20,6 @@ import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class ConnectServer {
@@ -115,13 +114,12 @@ public class ConnectServer {
 
                     CLIENTS.put(id, handler);
                     ServerGUI.addClient(String.valueOf(id));
-                    int removeId = id;
-                    EXECUTOR.schedule(() -> TESTING.remove(removeId), 1, TimeUnit.SECONDS);
+                    TESTING.remove((Object) id);
                 }
             } catch (Exception exception) {
                 msg("Ocorreu um erro ao receber uma conexão! (" + exception.getMessage() + ")");
                 if (exception.getMessage().contains("Address already in use")) {
-                    JOptionPane.showMessageDialog(null, "Já possui um servidor rodando neste computador!");
+                    JOptionPane.showMessageDialog(null, "Já possui um servidor rodando neste computador!", "Erro", JOptionPane.ERROR_MESSAGE);
                     System.exit(0);
                 }
             }

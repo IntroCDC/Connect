@@ -142,6 +142,7 @@ public class ServerFileComponents {
         JScrollPane scrollPane = new JScrollPane(gridPanel);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(20);
 
         JPanel bottomPanel = new JPanel(new GridLayout(1, 1, 5, 5));
 
@@ -495,84 +496,84 @@ public class ServerFileComponents {
 
     public static void sendFile(String input) {
         File file = new File("connect/" + input);
-        if (file.exists()) {
-            boolean temp = false;
-            if (file.isDirectory()) {
-                temp = true;
-                ConnectServer.msg("Pasta " + file.getName() + " sendo zipada para envio...");
-                try {
-                    ServerFileComponents.createZip(file, new File("connect/file.zip"));
-                } catch (Exception exception) {
-                    ConnectServer.msg("Ocorreu um erro ao zipar a pasta " + file.getName());
-                    return;
-                }
-                file = new File("connect/file.zip");
+        if (!file.exists()) {
+            ConnectServer.msg("Arquivo não encontrado para envio!");
+            return;
+        }
+        boolean temp = false;
+        if (file.isDirectory()) {
+            temp = true;
+            ConnectServer.msg("Pasta " + file.getName() + " sendo zipada para envio...");
+            try {
+                ServerFileComponents.createZip(file, new File("connect/file.zip"));
+            } catch (Exception exception) {
+                ConnectServer.msg("Ocorreu um erro ao zipar a pasta " + file.getName());
+                return;
             }
-            ConnectServer.msg("Preparando-se para enviar arquivo" + (ConnectServer.SELECTED_CLIENT == -1 ? " para todos os clientes..." : "..."));
-            File fileToSend = file;
-            boolean temporary = temp;
-            ConnectServer.EXECUTOR.schedule(() -> new Thread(() -> {
-                int toSend = 1;
-                if (ConnectServer.SELECTED_CLIENT == -1) {
-                    if (ConnectServer.CLIENTS.isEmpty()) {
-                        ConnectServer.msg("Não possui nenhum cliente conectado no momento!");
-                    } else {
-                        Collection<ClientHandler> clientHandlerList = new ArrayList<>(ConnectServer.CLIENTS.values());
-                        toSend = clientHandlerList.size();
-                        for (ClientHandler clientHandler : clientHandlerList) {
-                            clientHandler.send("send " + fileToSend.getName());
-                        }
-                    }
+            file = new File("connect/file.zip");
+        }
+        ConnectServer.msg("Preparando-se para enviar arquivo" + (ConnectServer.SELECTED_CLIENT == -1 ? " para todos os clientes..." : "..."));
+        File fileToSend = file;
+        boolean temporary = temp;
+        ConnectServer.EXECUTOR.schedule(() -> new Thread(() -> {
+            int toSend = 1;
+            if (ConnectServer.SELECTED_CLIENT == -1) {
+                if (ConnectServer.CLIENTS.isEmpty()) {
+                    ConnectServer.msg("Não possui nenhum cliente conectado no momento!");
                 } else {
-                    ClientHandler client = ConnectServer.CLIENTS.get(ConnectServer.SELECTED_CLIENT);
-                    client.send("send " + fileToSend.getName());
+                    Collection<ClientHandler> clientHandlerList = new ArrayList<>(ConnectServer.CLIENTS.values());
+                    toSend = clientHandlerList.size();
+                    for (ClientHandler clientHandler : clientHandlerList) {
+                        clientHandler.send("send " + fileToSend.getName());
+                    }
                 }
+            } else {
+                ClientHandler client = ConnectServer.CLIENTS.get(ConnectServer.SELECTED_CLIENT);
+                client.send("send " + fileToSend.getName());
+            }
 
-                try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + 4)) {
-                    int connected = 0;
-                    while (connected < toSend) {
-                        try (Socket clientSocket = serverSocket.accept();
-                             DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
-                             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(fileToSend))) {
-                            connected++;
-                            try {
-                                dos.writeUTF(fileToSend.getName());
-                                dos.flush();
-                                dos.writeUTF(fileToSend.getName());
-                                dos.flush();
-                                dos.writeUTF("temp:" + temporary);
-                                dos.flush();
+            try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + 4)) {
+                int connected = 0;
+                while (connected < toSend) {
+                    try (Socket clientSocket = serverSocket.accept();
+                         DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
+                         BufferedInputStream bis = new BufferedInputStream(new FileInputStream(fileToSend))) {
+                        connected++;
+                        try {
+                            dos.writeUTF(fileToSend.getName());
+                            dos.flush();
+                            dos.writeUTF(fileToSend.getName());
+                            dos.flush();
+                            dos.writeUTF("temp:" + temporary);
+                            dos.flush();
 
-                                byte[] buffer = new byte[4096];
-                                int bytesRead;
-                                while ((bytesRead = bis.read(buffer)) != -1) {
-                                    dos.write(buffer, 0, bytesRead);
-                                    ConnectServer.addBytes(fileToSend.length(), true);
-                                }
-                            } catch (Exception exception) {
-                                ConnectServer.msg("Ocorreu um erro ao enviar um arquivo via socket pós conexão!");
+                            byte[] buffer = new byte[4096];
+                            int bytesRead;
+                            while ((bytesRead = bis.read(buffer)) != -1) {
+                                dos.write(buffer, 0, bytesRead);
+                                ConnectServer.addBytes(fileToSend.length(), true);
                             }
                         } catch (Exception exception) {
-                            ConnectServer.msg("Ocorreu um erro ao enviar um arquivo via socket...");
+                            ConnectServer.msg("Ocorreu um erro ao enviar um arquivo via socket pós conexão!");
                         }
+                    } catch (Exception exception) {
+                        ConnectServer.msg("Ocorreu um erro ao enviar um arquivo via socket...");
                     }
-
-                    if (temporary) {
-                        ServerFileComponents.deleteFile(fileToSend);
-                    }
-                } catch (Exception exception) {
-                    ConnectServer.msg("Ocorreu um erro ao enviar o arquivo para o cliente! (" + exception.getMessage() + ")");
                 }
-            }).start(), 100, TimeUnit.MILLISECONDS);
-        } else {
-            ConnectServer.msg("Arquivo não encontrado para envio!");
-        }
+
+                if (temporary) {
+                    ServerFileComponents.deleteFile(fileToSend);
+                }
+            } catch (Exception exception) {
+                ConnectServer.msg("Ocorreu um erro ao enviar o arquivo para o cliente! (" + exception.getMessage() + ")");
+            }
+        }).start(), 100, TimeUnit.MILLISECONDS);
     }
 
     public static void handleUpdate() {
         File connectFile = new File("connect/Connect.jar");
         if (!connectFile.exists()) {
-            JOptionPane.showMessageDialog(null, "Crie uma build no botão 'Criar Build' para enviar uma atualização!");
+            JOptionPane.showMessageDialog(null, "Crie uma build no botão 'Criar Build' para enviar uma atualização!", "Erro", JOptionPane.ERROR_MESSAGE);
             return;
         }
 

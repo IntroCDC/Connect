@@ -152,10 +152,10 @@ public class ClientHandler implements Runnable {
                     send("r-ping");
                 } else if (command.equalsIgnoreCase("icon-screen") || command.equalsIgnoreCase("icon-webcam")) {
                     boolean webcam = command.equalsIgnoreCase("icon-webcam");
-                    ConnectServer.EXECUTOR.schedule(() -> new Thread(() -> {
+                    new Thread(() -> {
                         boolean first = true;
                         JLabel label = null;
-                        try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + 9)) {
+                        try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + (webcam ? 10 : 9))) {
                             try (Socket clientSocket = serverSocket.accept();
                                  InputStream is = clientSocket.getInputStream()) {
                                 BufferedImage receivedImage = ImageIO.read(is);
@@ -179,7 +179,7 @@ public class ClientHandler implements Runnable {
                             }
                             ConnectServer.msg(getClientInfo() + ": Ocorreu um erro ao abrir o servidor de icone");
                         }
-                    }).start(), 1, TimeUnit.SECONDS);
+                    }).start();
                 } else if (!auth) {
                     closeConnection("Conexão com o cliente " + getClientIP() + " não identificada! (" + this.location + ")");
                     ServerAudioComponents.generateBeep(100, 250, true);
@@ -218,7 +218,7 @@ public class ClientHandler implements Runnable {
                             screenSocket.close();
                         }
                     }
-                    ConnectServer.EXECUTOR.schedule(() -> new Thread(() -> {
+                    new Thread(() -> {
                         boolean first = true;
                         JLabel label = null;
                         try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + (view ? 5 : webcam ? 2 : 1))) {
@@ -295,7 +295,7 @@ public class ClientHandler implements Runnable {
                             }
                             ConnectServer.msg(getClientInfo() + ": Ocorreu um erro ao abrir o servidor de receber arquivo");
                         }
-                    }).start(), 1, TimeUnit.SECONDS);
+                    }).start();
                 } else if (command.equalsIgnoreCase("audio-user") || command.equalsIgnoreCase("audio-server")) {
                     boolean fromUser = command.equalsIgnoreCase("audio-user");
                     ConnectServer.msg(getClientInfo() + ": Recebendo transmissão de áudio " + (fromUser ? "do cliente para o servidor" :
@@ -599,11 +599,11 @@ public class ClientHandler implements Runnable {
     }
 
     public String ipLocation(String ip) {
-        if (getClientIP().equals("127.0.0.1") || getClientIP().startsWith("192.168.")) {
+        if (ip.contains("127.0.0.1") || ip.startsWith("192.168.") || ip.contains("localhost")) {
             return "IP Local";
         }
         try {
-            JsonObject ipInfo = ServerControlComponents.readJson("http://ip-api.com/json/" + getClientIP()).getAsJsonObject();
+            JsonObject ipInfo = ServerControlComponents.readJson("http://ip-api.com/json/" + ip).getAsJsonObject();
             return ipInfo.get("city").getAsString() + "/" + ipInfo.get("regionName").getAsString() + "/" + ipInfo.get("country").getAsString();
         } catch (Exception exception) {
             return "Erro ao localizar ip: " + exception.getMessage();
