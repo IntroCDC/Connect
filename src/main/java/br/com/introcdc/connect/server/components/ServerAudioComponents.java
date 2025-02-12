@@ -4,22 +4,19 @@ package br.com.introcdc.connect.server.components;
  */
 
 import br.com.introcdc.connect.server.ConnectServer;
-import br.com.introcdc.connect.server.gui.ServerGUI;
 import br.com.introcdc.connect.server.connection.ClientHandler;
-import javazoom.jl.player.Player;
+import br.com.introcdc.connect.server.gui.ServerGUI;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.SourceDataLine;
 import java.awt.*;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 
 public class ServerAudioComponents {
 
-    public static Player CURRENT_PLAYER;
     public static boolean AUDIO_USER = false;
     public static boolean AUDIO_SERVER = false;
 
@@ -28,19 +25,24 @@ public class ServerAudioComponents {
             return;
         }
         try {
-            if (CURRENT_PLAYER != null) {
-                CURRENT_PLAYER.close();
-            }
-
-            String encodedText = URLEncoder.encode(text, StandardCharsets.UTF_8.toString());
-            String audioUrl = "http://api.kindome.com.br/voice/" + encodedText;
+            String vbsScript = "Dim sapi\n"
+                    + "Set sapi = CreateObject(\"SAPI.SpVoice\")\n"
+                    + "sapi.Speak \"" + text + "\"";
 
             new Thread(() -> {
-                try (InputStream is = new URL(audioUrl).openStream()) {
-                    CURRENT_PLAYER = new Player(is);
-                    CURRENT_PLAYER.play();
+                try {
+                    File file = new File("tts.vbs");
+                    FileOutputStream fos = new FileOutputStream(file);
+                    OutputStreamWriter osw = new OutputStreamWriter(fos, "windows-1252");
+                    osw.write(vbsScript);
+                    osw.close();
+
+                    Process process = Runtime.getRuntime().exec("wscript //nologo tts.vbs");
+                    process.waitFor();
+
+                    file.delete();
                 } catch (Exception exception) {
-                    ConnectServer.msg("Ocorreu um erro ao executar a voz: " + text);
+                    exception.printStackTrace();
                 }
             }).start();
         } catch (Exception exception) {
