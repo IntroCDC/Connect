@@ -59,7 +59,7 @@ public class ServerCommandHelp extends ServerCommand {
         msg("ask (pergunta) | Enviar mensagem com caixa de diálogo ao cliente");
         msg("chat | Abrir o chat de conversa com o cliente");
         msg("voice (texto) | Fazer no computador do cliente digitar uma voz");
-        msg("update | Verificar se tem atualização");
+        msg("update | Atualizar cliente com a última build criada");
         msg("close | Fechar o processo do cliente");
         msg("uninstall | Desinstalar o programa do cliente");
     }
