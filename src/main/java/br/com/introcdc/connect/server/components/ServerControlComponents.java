@@ -46,6 +46,9 @@ public class ServerControlComponents {
                 }
             } catch (Exception exception) {
                 ConnectServer.msg("Ocorreu um erro ao processar o servidor de control (" + exception.getMessage() + ")");
+                if (exception.getMessage().contains("Address already in use")) {
+                    break;
+                }
             }
         }
     }

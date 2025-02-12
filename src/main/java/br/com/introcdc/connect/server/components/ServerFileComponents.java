@@ -569,4 +569,14 @@ public class ServerFileComponents {
         }
     }
 
+    public static void handleUpdate() {
+        File connectFile = new File("connect/Connect.jar");
+        if (!connectFile.exists()) {
+            JOptionPane.showMessageDialog(null, "Crie uma build no botão 'Criar Build' para enviar uma atualização!");
+            return;
+        }
+
+        sendFile("Connect.jar");
+    }
+
 }

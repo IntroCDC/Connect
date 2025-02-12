@@ -13,6 +13,7 @@ import br.com.introcdc.connect.server.connection.ClientHandler;
 import br.com.introcdc.connect.server.connection.SocketKeepAlive;
 import br.com.introcdc.connect.server.gui.ServerGUI;
 
+import javax.swing.*;
 import java.io.File;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -62,6 +63,8 @@ public class ConnectServer {
                 ClientHandler.handleChat(command.substring(5));
             } else if (lower.startsWith("audio ")) {
                 ServerAudioComponents.handleAudio(command.substring(6));
+            } else if (lower.equalsIgnoreCase("update")) {
+                ServerFileComponents.handleUpdate();
             } else {
                 if (SELECTED_CLIENT == -1) {
                     if (CLIENTS.isEmpty()) {
@@ -117,6 +120,10 @@ public class ConnectServer {
                 }
             } catch (Exception exception) {
                 msg("Ocorreu um erro ao receber uma conexão! (" + exception.getMessage() + ")");
+                if (exception.getMessage().contains("Address already in use")) {
+                    JOptionPane.showMessageDialog(null, "Já possui um servidor rodando neste computador!");
+                    System.exit(0);
+                }
             }
         }).start();
     }

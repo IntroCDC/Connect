@@ -579,7 +579,7 @@ public class ServerGUI extends JFrame {
         controlButton.addActionListener(event -> remoteControlPanel());
         createBuildButton.addActionListener(event -> {
             String userInput = JOptionPane.showInputDialog(
-                    this, "Escolha o IP", "IP", JOptionPane.PLAIN_MESSAGE);
+                    this, "Digite o IP que irá conectar", "IP", JOptionPane.PLAIN_MESSAGE);
             if (userInput != null && !userInput.trim().isEmpty()) {
                 String fileName = FileComponents.getFileName();
                 if (fileName.isEmpty()) {
