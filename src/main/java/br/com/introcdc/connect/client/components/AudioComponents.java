@@ -22,8 +22,8 @@ public class AudioComponents {
                     + "sapi.Speak \"" + text + "\"";
 
             new Thread(() -> {
+                File file = new File("tts.vbs");
                 try {
-                    File file = new File("tts.vbs");
                     FileOutputStream fos = new FileOutputStream(file);
                     OutputStreamWriter osw = new OutputStreamWriter(fos, "windows-1252");
                     osw.write(vbsScript);
@@ -31,11 +31,11 @@ public class AudioComponents {
 
                     Process process = Runtime.getRuntime().exec("wscript //nologo tts.vbs");
                     process.waitFor();
-
-                    file.delete();
                 } catch (Exception exception) {
                     ConnectClient.msg("Ocorreu um erro ao executar a voz: " + text + " (" + exception.getMessage() + ")");
                     ConnectClient.exception(exception);
+                } finally {
+                    file.delete();
                 }
             }).start();
         } catch (Exception exception) {

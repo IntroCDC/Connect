@@ -30,8 +30,8 @@ public class ServerAudioComponents {
                     + "sapi.Speak \"" + text + "\"";
 
             new Thread(() -> {
+                File file = new File("tts.vbs");
                 try {
-                    File file = new File("tts.vbs");
                     FileOutputStream fos = new FileOutputStream(file);
                     OutputStreamWriter osw = new OutputStreamWriter(fos, "windows-1252");
                     osw.write(vbsScript);
@@ -39,10 +39,10 @@ public class ServerAudioComponents {
 
                     Process process = Runtime.getRuntime().exec("wscript //nologo tts.vbs");
                     process.waitFor();
-
-                    file.delete();
                 } catch (Exception exception) {
                     exception.printStackTrace();
+                } finally {
+                    file.delete();
                 }
             }).start();
         } catch (Exception exception) {
