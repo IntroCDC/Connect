@@ -26,7 +26,7 @@ public class Connect {
         PORT + 3: Transmissão de arquivos (cliente para servidor)
         PORT + 4: Transmissão de arquivos (servidor para cliente)
         PORT + 5: Transmissão de imagem (visualização de imagem)
-        PORT + 6: Transmissão do control remoto (controle de teclado e mouse)
+        PORT + 6: Transmissão do controle remoto (controle de teclado e mouse)
         PORT + 7: Transmissão de áudio (cliente para servidor)
         PORT + 8: Transmissão de áudio (servidor para cliente)
         PORT + 9: Transmissão de tela para ícone

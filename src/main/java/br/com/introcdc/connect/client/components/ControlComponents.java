@@ -97,7 +97,7 @@ public class ControlComponents {
                 }
             }
         } catch (Exception exception) {
-            ConnectClient.msg("Ocorreu um erro ao processar a mensagem de control remoto (" + exception.getMessage() + ")");
+            ConnectClient.msg("Ocorreu um erro ao processar a mensagem de controle remoto (" + exception.getMessage() + ")");
             ConnectClient.exception(exception);
         }
     }

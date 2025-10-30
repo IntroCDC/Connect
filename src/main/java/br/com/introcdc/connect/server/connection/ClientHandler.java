@@ -17,7 +17,11 @@ import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.ServerSocket;
@@ -253,7 +257,7 @@ public class ClientHandler implements Runnable {
                                                         " | 0/" + ServerImageComponents.FPS + " FPS" + (!webcam && screenLive && ServerControlComponents.CONTROL ?
                                                                 " | CONTROLE REMOTO" : ""), !webcam);
                                             } else {
-                                                ServerImageComponents.updateLiveImage(receivedImage, label);
+                                                ServerImageComponents.updateLiveImage(receivedImage, label, !webcam);
                                             }
                                             long currentMillis = System.currentTimeMillis();
                                             long delta = currentMillis - (webcam ? webcamMillis : screenMillis);
@@ -731,69 +735,173 @@ public class ClientHandler implements Runnable {
     }
 
     public void createChatFrame() {
-        // Define ou não o modo escuro antes de setar o LookAndFeel
+        // Mantém o comportamento dark via Nimbus, mas dá uma turbinada "hacker"
         if (ServerGUI.DARK_MODE) {
             try {
                 UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
-
-                // Ajustes de cor para o modo escuro via UIManager
-                UIManager.put("control", new Color(60, 63, 65));
+                UIManager.put("control", new Color(12, 14, 20));
                 UIManager.put("text", Color.WHITE);
                 UIManager.put("nimbusBase", new Color(18, 30, 49));
-                UIManager.put("nimbusFocus", new Color(115, 164, 209));
-                UIManager.put("nimbusLightBackground", new Color(60, 63, 65));
-                UIManager.put("info", new Color(60, 63, 65));
-                UIManager.put("nimbusSelectionBackground", new Color(104, 93, 156));
-                UIManager.put("nimbusSelectedText", Color.WHITE);
-                UIManager.put("nimbusDisabledText", Color.GRAY);
-                UIManager.put("OptionPane.background", new Color(60, 63, 65));
-                UIManager.put("Panel.background", new Color(60, 63, 65));
-                UIManager.put("TextField.background", new Color(69, 73, 74));
+                UIManager.put("nimbusFocus", new Color(0, 255, 170));
+                UIManager.put("nimbusLightBackground", new Color(16, 18, 24));
+                UIManager.put("info", new Color(18, 18, 24));
+                UIManager.put("nimbusSelectionBackground", new Color(80, 225, 200));
+                UIManager.put("nimbusSelectedText", Color.BLACK);
+                UIManager.put("nimbusDisabledText", new Color(120, 120, 120));
+                UIManager.put("OptionPane.background", new Color(12, 14, 20));
+                UIManager.put("Panel.background", new Color(12, 14, 20));
+                UIManager.put("TextField.background", new Color(20, 22, 30));
                 UIManager.put("TextField.foreground", Color.WHITE);
-                UIManager.put("TextArea.background", new Color(69, 73, 74));
-                UIManager.put("TextArea.foreground", Color.WHITE);
-                UIManager.put("ComboBox.background", new Color(69, 73, 74));
+                UIManager.put("TextArea.background", new Color(17, 19, 26));
+                UIManager.put("TextArea.foreground", new Color(225, 255, 245));
+                UIManager.put("ComboBox.background", new Color(20, 22, 30));
                 UIManager.put("ComboBox.foreground", Color.WHITE);
-                UIManager.put("Button.background", new Color(77, 77, 77));
-                UIManager.put("Button.foreground", Color.WHITE);
+                UIManager.put("Button.background", new Color(24, 26, 34));
+                UIManager.put("Button.foreground", new Color(220, 255, 240));
             } catch (Exception ignored) {
             }
         } else {
-            // Se não for dark mode, apenas aplica o Nimbus padrão (ou outro look que desejar)
             try {
                 UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
             } catch (Exception ignored) {
             }
         }
 
-        // Cria o frame
-        CHAT_FRAME = new JFrame("Chat com " + getClientInfo());
-        CHAT_FRAME.setSize(600, 500);
+        // === FRAME ===
+        CHAT_FRAME = new JFrame("Chat — " + getClientInfo());
+        CHAT_FRAME.setSize(600, 500); // mantém proporção original
         CHAT_FRAME.setLocationRelativeTo(null);
-
-        // Tenta definir um ícone para a janela
         try {
             ImageIcon icon = new ImageIcon(ClientHandler.class.getResource("/eye.png"));
             CHAT_FRAME.setIconImage(icon.getImage());
         } catch (Exception ignored) {
         }
 
-        // Cria a área de texto (somente leitura)
+        // === HEADER (faixa com degradê e título) ===
+        JPanel header = new NeonGradientPanel(new Color(14, 16, 24), new Color(10, 12, 18));
+        header.setLayout(new BorderLayout());
+        header.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(40, 255, 200, 80)),
+                javax.swing.BorderFactory.createEmptyBorder(10, 12, 10, 12)
+        ));
+
+        JLabel title = new JLabel("Canal de Comando • " + getClientInfo());
+        title.setFont(new Font("Consolas", Font.BOLD, 14));
+        title.setForeground(new Color(160, 255, 230));
+        title.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 2, 0));
+
+        JLabel subtitle = new JLabel("Chat • ao vivo");
+        subtitle.setFont(new Font("Consolas", Font.PLAIN, 12));
+        subtitle.setForeground(new Color(110, 210, 190));
+
+        JPanel headerText = new JPanel(new GridLayout(2, 1));
+        headerText.setOpaque(false);
+        headerText.add(title);
+        headerText.add(subtitle);
+
+        // Botão rápido pra copiar todo o chat
+        JButton copyAll = neonButton("Copiar tudo");
+        copyAll.setToolTipText("Copia todo o histórico do chat p/ a área de transferência");
+        copyAll.addActionListener(e -> {
+            String all = CHAT_TEXT != null ? CHAT_TEXT.getText() : "";
+            if (!all.isEmpty()) {
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(all), null);
+            }
+        });
+
+        JPanel headerRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        headerRight.setOpaque(false);
+        headerRight.add(copyAll);
+
+        header.add(headerText, BorderLayout.WEST);
+        header.add(headerRight, BorderLayout.EAST);
+
+        // === ÁREA DE TEXTO ===
         CHAT_TEXT = new JTextArea();
         CHAT_TEXT.setEditable(false);
+        CHAT_TEXT.setFont(new Font("Consolas", Font.PLAIN, 13));
+        CHAT_TEXT.setForeground(new Color(220, 255, 240));
+        CHAT_TEXT.setBackground(new Color(17, 19, 26));
+        CHAT_TEXT.setBorder(javax.swing.BorderFactory.createEmptyBorder(8, 10, 8, 10));
 
-        // Adiciona a área de texto em um JScrollPane
+        // Menu de contexto (copiar/limpar)
+        javax.swing.JPopupMenu textMenu = new javax.swing.JPopupMenu();
+        JMenuItem miCopySel = new JMenuItem("Copiar seleção");
+        miCopySel.addActionListener(e -> {
+            String sel = CHAT_TEXT.getSelectedText();
+            if (sel != null && !sel.isEmpty()) {
+                Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(sel), null);
+            }
+        });
+        JMenuItem miCopyAll = new JMenuItem("Copiar tudo");
+        miCopyAll.addActionListener(e -> {
+            Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(CHAT_TEXT.getText()), null);
+        });
+        JMenuItem miClear = new JMenuItem("Limpar (local)");
+        miClear.addActionListener(e -> {
+            CHAT_TEXT.setText("");
+            CHAT_MESSAGES.clear();
+        });
+        textMenu.add(miCopySel);
+        textMenu.add(miCopyAll);
+        textMenu.addSeparator();
+        textMenu.add(miClear);
+        CHAT_TEXT.setComponentPopupMenu(textMenu);
+
         JScrollPane scrollPane = new JScrollPane(CHAT_TEXT);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new Color(40, 255, 200, 90), 1, true),
+                javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2)
+        ));
+        // Scrollbar minimalista (sem import extra)
+        scrollPane.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(40, 255, 200, 90);
+                this.trackColor = new Color(14, 16, 22);
+            }
+        });
+        scrollPane.getHorizontalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(40, 255, 200, 90);
+                this.trackColor = new Color(14, 16, 22);
+            }
+        });
 
-        // Painel de baixo (principal) usando BorderLayout
+        // === RODAPÉ (input + botões) ===
         JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        bottomPanel.setOpaque(false);
 
-        // Campo de texto para digitar mensagens
         CHAT_FIELD = new JTextField();
+        CHAT_FIELD.setFont(new Font("Consolas", Font.PLAIN, 13));
+        CHAT_FIELD.setForeground(new Color(230, 255, 250));
+        CHAT_FIELD.setBackground(new Color(20, 22, 30));
+        CHAT_FIELD.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new Color(40, 255, 200, 90), 1, true),
+                javax.swing.BorderFactory.createEmptyBorder(8, 10, 8, 10)
+        ));
+        // Placeholder simples
+        final String hint = "Digite sua mensagem e pressione Enter…";
+        CHAT_FIELD.putClientProperty("JTextField.placeholderText", hint); // alguns LAFs suportam
+        CHAT_FIELD.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                CHAT_FIELD.repaint();
+            }
 
-        // Botão "Enviar"
-        JButton sendButton = new JButton("Enviar");
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                CHAT_FIELD.repaint();
+            }
+        });
+
+        JButton sendButton = neonButton("Enviar");
+        JButton openChatButton = ghostButton("Abrir");
+        JButton clearChatButton = ghostButton("Limpar");
+        JButton closeChatButton = ghostButton("Fechar");
+
         ActionListener sendAction = event -> {
             String msg = CHAT_FIELD.getText().trim();
             if (!msg.isEmpty()) {
@@ -810,54 +918,79 @@ public class ClientHandler implements Runnable {
                 CHAT_FIELD.setText("");
             }
         };
-        // Liga a ação de enviar ao botão e ao Enter
         sendButton.addActionListener(sendAction);
-        CHAT_FIELD.addActionListener(sendAction);
+        CHAT_FIELD.addActionListener(sendAction); // Enter envia
 
-        // Botão "Abrir"
-        JButton openChatButton = new JButton("Abrir");
         openChatButton.addActionListener(event -> {
             addMessage("< CHAT DO USUÁRIO ABERTO >");
             send("chat >");
         });
-
-        // Botão "Fechar"
-        JButton closeChatButton = new JButton("Fechar");
         closeChatButton.addActionListener(event -> {
             addMessage("< CHAT DO USUÁRIO FECHADO >");
             send("chat >>");
         });
-
-        // Botão "Limpar"
-        JButton clearChatButton = new JButton("Limpar");
         clearChatButton.addActionListener(event -> {
             addMessage("< CHAT DO USUÁRIO LIMPO >");
             send("chat clear");
         });
 
-        // Subpainel para agrupar os 3 botões
-        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        buttonsPanel.setOpaque(false);
         buttonsPanel.add(sendButton);
         buttonsPanel.add(openChatButton);
         buttonsPanel.add(clearChatButton);
         buttonsPanel.add(closeChatButton);
 
-        // Adiciona o campo de texto no centro e o subpainel de botões à direita
         bottomPanel.add(CHAT_FIELD, BorderLayout.CENTER);
         bottomPanel.add(buttonsPanel, BorderLayout.EAST);
 
-        // Adiciona tudo ao frame principal
+        // === CONTEÚDO PRINCIPAL ===
+        JPanel center = new NeonGradientPanel(new Color(12, 14, 20), new Color(8, 10, 16));
+        center.setLayout(new BorderLayout(10, 10));
+        center.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        center.add(scrollPane, BorderLayout.CENTER);
+        center.add(bottomPanel, BorderLayout.SOUTH);
+
+        // === ROOT ===
+        JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(new Color(10, 12, 18));
+        root.add(header, BorderLayout.NORTH);
+        root.add(center, BorderLayout.CENTER);
+
         CHAT_FRAME.setLayout(new BorderLayout());
-        CHAT_FRAME.add(scrollPane, BorderLayout.CENTER);
-        CHAT_FRAME.add(bottomPanel, BorderLayout.SOUTH);
+        CHAT_FRAME.add(root, BorderLayout.CENTER);
 
-        // Atualiza a área de texto com mensagens antigas (se houver)
+        // Hotkeys: ESC fecha, Ctrl+Enter envia, Ctrl+L limpa local
+        javax.swing.InputMap im = CHAT_FRAME.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        javax.swing.ActionMap am = CHAT_FRAME.getRootPane().getActionMap();
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "closeWin");
+        am.put("closeWin", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                CHAT_FRAME.dispose();
+            }
+        });
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, InputEvent.CTRL_DOWN_MASK), "sendMsg");
+        am.put("sendMsg", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendAction.actionPerformed(null);
+            }
+        });
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK), "clearLocal");
+        am.put("clearLocal", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                CHAT_TEXT.setText("");
+                CHAT_MESSAGES.clear();
+            }
+        });
+
+        // Recarrega LAF
+        if (ServerGUI.DARK_MODE) SwingUtilities.updateComponentTreeUI(CHAT_FRAME);
+
+        // Carrega histórico já existente
         updateTextArea();
-
-        // Caso o DARK_MODE esteja habilitado, forçamos a atualização do look
-        if (ServerGUI.DARK_MODE) {
-            SwingUtilities.updateComponentTreeUI(CHAT_FRAME);
-        }
 
         CHAT_FRAME.setVisible(true);
     }
@@ -930,6 +1063,96 @@ public class ClientHandler implements Runnable {
                 }
                 client.send("chat " + input);
             }
+        }
+    }
+
+    // ======== VISUAIS AUXILIARES (dentro de ClientHandler) ========
+    private static Color accent() {
+        return new Color(40, 255, 200);
+    }
+
+    private static Color accentSoft() {
+        return new Color(40, 255, 200, 90);
+    }
+
+    private static Color baseBg() {
+        return new Color(12, 14, 20);
+    }
+
+    private JButton neonButton(String text) {
+        JButton b = new JButton(text);
+        b.setFont(new Font("Consolas", Font.BOLD, 12));
+        b.setForeground(new Color(14, 16, 20));
+        b.setBackground(accent());
+        b.setFocusPainted(false);
+        b.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(new Color(120, 255, 230), 1, true),
+                javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 14)
+        ));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                b.setBackground(new Color(80, 255, 225));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                b.setBackground(accent());
+            }
+        });
+        return b;
+    }
+
+    private JButton ghostButton(String text) {
+        JButton b = new JButton(text);
+        b.setFont(new Font("Consolas", Font.BOLD, 12));
+        b.setForeground(new Color(210, 255, 245));
+        b.setBackground(new Color(24, 26, 34));
+        b.setFocusPainted(false);
+        b.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(accentSoft(), 1, true),
+                javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 14)
+        ));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                b.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                        javax.swing.BorderFactory.createLineBorder(accent(), 1, true),
+                        javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 14)
+                ));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                b.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                        javax.swing.BorderFactory.createLineBorder(accentSoft(), 1, true),
+                        javax.swing.BorderFactory.createEmptyBorder(8, 14, 8, 14)
+                ));
+            }
+        });
+        return b;
+    }
+
+    // Painel com degradê sutil
+    private static class NeonGradientPanel extends JPanel {
+        private final Color c1, c2;
+
+        NeonGradientPanel(Color c1, Color c2) {
+            this.c1 = c1;
+            this.c2 = c2;
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int w = getWidth(), h = getHeight();
+            GradientPaint gp = new GradientPaint(0, 0, c1, 0, h, c2);
+            g2.setPaint(gp);
+            g2.fillRect(0, 0, w, h);
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 

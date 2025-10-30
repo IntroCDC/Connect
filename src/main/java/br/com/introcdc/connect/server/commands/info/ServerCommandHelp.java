@@ -20,7 +20,7 @@ public class ServerCommandHelp extends ServerCommand {
         msg("desel | Resetar a seleção de cliente");
         msg("info | Receber todas as informações do pc do usuário");
         msg("debug | Ativar ou desativar o modo debug");
-        msg("control | Ativar ou desativar o modo de control remoto");
+        msg("control | Ativar ou desativar o modo de controle remoto");
         msg("keyboard/mouse/mousemove | Ativar ou desativar os controles individualmente");
         msg("duplicate | Ativar ou desativar o modo de desconectar duplicata");
         msg("fps (fps) | Selecionar a quantidade de FPS por padrão");

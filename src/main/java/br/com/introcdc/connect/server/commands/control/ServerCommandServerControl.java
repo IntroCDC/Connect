@@ -17,10 +17,10 @@ public class ServerCommandServerControl extends ServerCommand {
     public void execute(String command, String input) throws Exception {
         if (ServerControlComponents.CONTROL) {
             ServerControlComponents.CONTROL = false;
-            msg("Modo control remoto desativado!");
+            msg("Modo controle remoto desativado!");
         } else {
             ServerControlComponents.CONTROL = true;
-            msg("Modo control remoto ativado!");
+            msg("Modo controle remoto ativado!");
         }
         ServerGUI.toggleColor(ServerControlComponents.CONTROL_BUTTON, ServerControlComponents.CONTROL);
         ServerGUI.toggleColor(ServerGUI.controlButton, ServerControlComponents.CONTROL);

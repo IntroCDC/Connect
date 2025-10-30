@@ -12,6 +12,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ServerImageComponents {
 
@@ -20,6 +22,17 @@ public class ServerImageComponents {
     public static JFrame WEBCAM_FRAME;
     public static JButton SCREEN_STOP;
     public static JButton WEBCAM_STOP;
+
+    public static volatile boolean SAVE_LIVE_FRAMES = true;
+    public static volatile long SAVE_THROTTLE_MS = 200;
+    private static final ExecutorService LIVE_SAVER = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "LiveSaver");
+        t.setDaemon(true);
+        return t;
+    });
+
+    private static volatile long lastScreenSave = 0L;
+    private static volatile long lastWebcamSave = 0L;
 
     public static void openImage(BufferedImage image, String title) {
         Toolkit kit = Toolkit.getDefaultToolkit();
@@ -296,10 +309,11 @@ public class ServerImageComponents {
         } catch (Exception ignored) {
         }
 
+        saveLiveAsync(image, screen);
         return label;
     }
 
-    public static void updateLiveImage(BufferedImage image, JLabel label) {
+    public static void updateLiveImage(BufferedImage image, JLabel label, boolean screen) {
         Toolkit kit = Toolkit.getDefaultToolkit();
         Dimension screenSize = kit.getScreenSize();
 
@@ -313,6 +327,43 @@ public class ServerImageComponents {
         ImageIcon newImageIcon = new ImageIcon(scaledImage);
 
         label.setIcon(newImageIcon);
+
+        // Snapshot live assíncrono + throttle
+        saveLiveAsync(image, screen);
+    }
+
+    private static void saveLiveAsync(BufferedImage src, boolean screen) {
+        try {
+            if (!SAVE_LIVE_FRAMES || src == null) return;
+
+            long now = System.currentTimeMillis();
+            long last = screen ? lastScreenSave : lastWebcamSave;
+
+            if (now - last < SAVE_THROTTLE_MS) return;
+            if (screen) lastScreenSave = now;
+            else lastWebcamSave = now;
+
+            final BufferedImage copy = toRGB(src);
+            final File out = new File("connect/" + (screen ? "screen.jpg" : "webcam.jpg"));
+
+            LIVE_SAVER.submit(() -> {
+                try {
+                    ImageIO.write(copy, "jpg", out);
+                } catch (Exception ex) {
+                }
+            });
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+    }
+
+    private static BufferedImage toRGB(BufferedImage src) {
+        if (src.getType() == BufferedImage.TYPE_INT_RGB) return src;
+        BufferedImage dst = new BufferedImage(src.getWidth(), src.getHeight(), BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2 = dst.createGraphics();
+        g2.drawImage(src, 0, 0, null);
+        g2.dispose();
+        return dst;
     }
 
 }

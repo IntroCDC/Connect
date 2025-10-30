@@ -55,7 +55,7 @@ public class ServerFileComponents {
         }
         FRAME = new JFrame(title);
         FRAME.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        FRAME.setSize(1500, 600);
+        FRAME.setSize(1500, 700);
         FRAME.setLocationRelativeTo(null);
 
         try {
@@ -64,44 +64,79 @@ public class ServerFileComponents {
         } catch (Exception ignored) {
         }
 
+        // ---- Look & Feel dark + palletinha neon ----
         try {
             UIManager.setLookAndFeel("javax.swing.plaf.nimbus.NimbusLookAndFeel");
             if (ServerGUI.DARK_MODE) {
-                UIManager.put("control", new Color(60, 63, 65));
+                UIManager.put("control", new Color(12, 14, 20));
                 UIManager.put("text", Color.WHITE);
                 UIManager.put("nimbusBase", new Color(18, 30, 49));
-                UIManager.put("nimbusFocus", new Color(115, 164, 209));
-                UIManager.put("nimbusLightBackground", new Color(60, 63, 65));
-                UIManager.put("info", new Color(60, 63, 65));
-                UIManager.put("nimbusSelectionBackground", new Color(104, 93, 156));
-                UIManager.put("nimbusSelectedText", Color.WHITE);
-                UIManager.put("nimbusDisabledText", Color.GRAY);
-                UIManager.put("OptionPane.background", new Color(60, 63, 65));
-                UIManager.put("Panel.background", new Color(60, 63, 65));
-                UIManager.put("TextField.background", new Color(69, 73, 74));
+                UIManager.put("nimbusFocus", new Color(0, 255, 170));
+                UIManager.put("nimbusLightBackground", new Color(16, 18, 24));
+                UIManager.put("info", new Color(16, 18, 24));
+                UIManager.put("nimbusSelectionBackground", new Color(80, 225, 200));
+                UIManager.put("nimbusSelectedText", Color.BLACK);
+                UIManager.put("nimbusDisabledText", new Color(120, 120, 120));
+                UIManager.put("OptionPane.background", new Color(12, 14, 20));
+                UIManager.put("Panel.background", new Color(12, 14, 20));
+                UIManager.put("TextField.background", new Color(20, 22, 30));
                 UIManager.put("TextField.foreground", Color.WHITE);
-                UIManager.put("TextArea.background", new Color(69, 73, 74));
-                UIManager.put("TextArea.foreground", Color.WHITE);
-                UIManager.put("ComboBox.background", new Color(69, 73, 74));
+                UIManager.put("TextArea.background", new Color(17, 19, 26));
+                UIManager.put("TextArea.foreground", new Color(225, 255, 245));
+                UIManager.put("ComboBox.background", new Color(20, 22, 30));
                 UIManager.put("ComboBox.foreground", Color.WHITE);
-                UIManager.put("Button.background", new Color(77, 77, 77));
-                UIManager.put("Button.foreground", Color.WHITE);
-                SwingUtilities.updateComponentTreeUI(FRAME);
+                UIManager.put("Button.background", new Color(24, 26, 34));
+                UIManager.put("Button.foreground", new Color(220, 255, 240));
             }
         } catch (Exception ignored) {
         }
 
-        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        // ---- ROOT ----
+        JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(new Color(10, 12, 18));
 
-        JPanel gridPanel = new JPanel(new GridLayout(0, 3, 10, 10));
+        // ---- HEADER (gradiente + título) ----
+        JPanel header = new NeonGradientPanel(new Color(14, 16, 24), new Color(10, 12, 18));
+        header.setLayout(new BorderLayout());
+        header.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(40, 255, 200, 80)),
+                BorderFactory.createEmptyBorder(12, 16, 12, 16)
+        ));
+
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Consolas", Font.BOLD, 15));
+        titleLabel.setForeground(new Color(160, 255, 230));
+        JLabel subLabel = new JLabel("Navegador de arquivos • duplo clique abre/recebe • clique simples seleciona");
+        subLabel.setFont(new Font("Consolas", Font.PLAIN, 12));
+        subLabel.setForeground(new Color(110, 210, 190));
+
+        JPanel headerText = new JPanel(new GridLayout(2, 1));
+        headerText.setOpaque(false);
+        headerText.add(titleLabel);
+        headerText.add(subLabel);
+
+        JButton refreshTop = neonButton("Atualizar");
+        refreshTop.setToolTipText("Recarregar (ls)");
+        refreshTop.addActionListener(e -> {
+            handleCommand("ls", true);
+        });
+
+        JPanel headerRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        headerRight.setOpaque(false);
+        headerRight.add(refreshTop);
+
+        header.add(headerText, BorderLayout.WEST);
+        header.add(headerRight, BorderLayout.EAST);
+
+        // ---- GRID DE CARDS ----
+        JPanel gridPanel = new JPanel(new GridLayout(0, 6, 10, 10)); // 6 colunas pra aproveitar largura
+        gridPanel.setOpaque(false);
 
         AtomicReference<JPanel> previouslySelectedCard = new AtomicReference<>(null);
         AtomicReference<FileInfo> selectedFileInfo = new AtomicReference<>(null);
 
         for (FileInfo fileInfo : fileList) {
             JPanel card = createFileCard(fileInfo);
-
             card.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent event) {
@@ -121,21 +156,21 @@ public class ServerFileComponents {
                         JPanel oldCard = previouslySelectedCard.get();
                         if (oldCard != null) {
                             oldCard.setBorder(BorderFactory.createCompoundBorder(
-                                    BorderFactory.createLineBorder(oldCard.getName().equalsIgnoreCase(InstallComponents.LOCAL_FILE) ?
-                                            Color.RED : Color.GRAY, 1),
-                                    BorderFactory.createEmptyBorder(5, 5, 5, 5)
+                                    BorderFactory.createLineBorder(
+                                            oldCard.getName().equalsIgnoreCase(InstallComponents.LOCAL_FILE) ? Color.RED : new Color(80, 90, 110), 1, true
+                                    ),
+                                    BorderFactory.createEmptyBorder(6, 6, 6, 6)
                             ));
                         }
                         card.setBorder(BorderFactory.createCompoundBorder(
-                                BorderFactory.createLineBorder(Color.BLUE, 2),
-                                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+                                BorderFactory.createLineBorder(new Color(40, 255, 200), 2, true),
+                                BorderFactory.createEmptyBorder(6, 6, 6, 6)
                         ));
                         previouslySelectedCard.set(card);
                         selectedFileInfo.set(fileInfo);
                     }
                 }
             });
-
             gridPanel.add(card);
         }
 
@@ -143,15 +178,135 @@ public class ServerFileComponents {
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.getVerticalScrollBar().setUnitIncrement(20);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        tweakScrollbars(scrollPane);
 
-        JPanel bottomPanel = new JPanel(new GridLayout(1, 1, 5, 5));
+        // ---- BARRA DE AÇÕES (inferior) ----
+        JPanel bottomPanel = new NeonGradientPanel(new Color(12, 14, 20), new Color(8, 10, 16));
+        bottomPanel.setLayout(new BorderLayout());
+        bottomPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(40, 255, 200, 80)),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
 
         JPanel selectionButtonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        selectionButtonsPanel.setOpaque(false);
 
-        JButton updateButton = ServerGUI.createButton("Atualizar");
+        JButton cdButton = ghostButton("Entrar");
+        cdButton.addActionListener(event -> {
+            String fileName = JOptionPane.showInputDialog(FRAME,
+                    "Digite o nome da pasta para entrar:",
+                    "Nome da Pasta",
+                    JOptionPane.QUESTION_MESSAGE
+            );
+            if (fileName != null && !fileName.trim().isEmpty()) {
+                handleCommand("cd " + fileName.trim(), true);
+                handleCommand("ls", true);
+            }
+        });
+
+        JButton updateButton = ghostButton("Atualizar");
         updateButton.addActionListener(e -> handleCommand("ls", true));
 
-        JButton deleteButton = ServerGUI.createButton("Deletar");
+        JButton fileInfoButton = ghostButton("Detalhes");
+        fileInfoButton.addActionListener(e -> {
+            FileInfo sel = selectedFileInfo.get();
+            if (sel != null) {
+                if (sel.getIndex() == -1) {
+                    JOptionPane.showMessageDialog(FRAME, "Não é possível ver detalhes desta pasta!", "Aviso", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                handleCommand("fileinfo i:" + sel.getIndex(), true);
+            } else {
+                JOptionPane.showMessageDialog(FRAME, "Nenhum item selecionado!", "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        JButton viewButton = ghostButton("Visualizar");
+        viewButton.addActionListener(e -> {
+            FileInfo sel = selectedFileInfo.get();
+            if (sel != null) {
+                if (sel.getIndex() == -1) {
+                    JOptionPane.showMessageDialog(FRAME, "Não é possível visualizar esta pasta!", "Aviso", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                handleCommand("view i:" + sel.getIndex(), true);
+            } else {
+                JOptionPane.showMessageDialog(FRAME, "Nenhum item selecionado!", "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        JButton receiveButton = neonButton("Receber");
+        receiveButton.addActionListener(e -> {
+            FileInfo sel = selectedFileInfo.get();
+            if (sel != null) {
+                if (sel.getIndex() == -1) {
+                    JOptionPane.showMessageDialog(FRAME, "Não é possível receber esta pasta!", "Aviso", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                handleCommand("receive i:" + sel.getIndex(), true);
+            } else {
+                JOptionPane.showMessageDialog(FRAME, "Nenhum item selecionado!");
+            }
+        });
+
+        JButton sendFileButton = neonButton("Enviar Arquivo");
+        sendFileButton.addActionListener(e -> {
+            String fileName = JOptionPane.showInputDialog(FRAME,
+                    "Digite o nome do arquivo/pasta para enviar (a partir de /connect):",
+                    "Nome Arquivo/Pasta",
+                    JOptionPane.QUESTION_MESSAGE
+            );
+            if (fileName != null && !fileName.trim().isEmpty()) {
+                handleCommand("send " + fileName.trim(), true);
+            }
+        });
+
+        JButton moveButton = ghostButton("Mover");
+        moveButton.addActionListener(e -> {
+            FileInfo sel = selectedFileInfo.get();
+            if (sel != null) {
+                if (sel.getIndex() == -1) {
+                    JOptionPane.showMessageDialog(FRAME, "Não é possível mover esta pasta!", "Aviso", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                String destiny = JOptionPane.showInputDialog(FRAME,
+                        "Digite o destino para mover o item '" + sel.getFileName() + "':",
+                        "Mover Arquivo/Pasta",
+                        JOptionPane.QUESTION_MESSAGE
+                );
+                if (destiny != null && !destiny.trim().isEmpty()) {
+                    handleCommand("move i:" + sel.getIndex() + " " + destiny, true);
+                    handleCommand("ls", true);
+                }
+            } else {
+                JOptionPane.showMessageDialog(FRAME, "Nenhum item selecionado!", "Aviso", JOptionPane.WARNING_MESSAGE);
+            }
+        });
+
+        JButton copyButton = ghostButton("Copiar");
+        copyButton.addActionListener(e -> {
+            FileInfo sel = selectedFileInfo.get();
+            if (sel != null) {
+                if (sel.getIndex() == -1) {
+                    JOptionPane.showMessageDialog(FRAME, "Não é possível copiar esta pasta!", "Aviso", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                String destiny = JOptionPane.showInputDialog(FRAME,
+                        "Digite o destino para copiar o item '" + sel.getFileName() + "':",
+                        "Copiar Arquivo/Pasta",
+                        JOptionPane.QUESTION_MESSAGE
+                );
+                if (destiny != null && !destiny.trim().isEmpty()) {
+                    handleCommand("copy i:" + sel.getIndex() + " " + destiny, true);
+                    handleCommand("ls", true);
+                }
+            } else {
+                JOptionPane.showMessageDialog(FRAME, "Nenhum item selecionado!");
+            }
+        });
+
+        JButton deleteButton = ghostDangerButton("Deletar");
         deleteButton.addActionListener(event -> {
             FileInfo sel = selectedFileInfo.get();
             if (sel != null) {
@@ -166,7 +321,6 @@ public class ServerFileComponents {
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.WARNING_MESSAGE
                 );
-
                 if (confirm == JOptionPane.YES_OPTION) {
                     handleCommand("del i:" + sel.getIndex(), true);
                     handleCommand("ls", true);
@@ -176,67 +330,7 @@ public class ServerFileComponents {
             }
         });
 
-        JButton receiveButton = ServerGUI.createButton("Receber");
-        receiveButton.addActionListener(e -> {
-            FileInfo sel = selectedFileInfo.get();
-            if (sel != null) {
-                if (sel.getIndex() == -1) {
-                    JOptionPane.showMessageDialog(FRAME, "Não é possível receber esta pasta!", "Aviso", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                handleCommand("receive i:" + sel.getIndex(), true);
-            } else {
-                JOptionPane.showMessageDialog(FRAME, "Nenhum item selecionado!");
-            }
-        });
-
-        JButton moveButton = ServerGUI.createButton("Mover");
-        moveButton.addActionListener(e -> {
-            FileInfo sel = selectedFileInfo.get();
-            if (sel != null) {
-                if (sel.getIndex() == -1) {
-                    JOptionPane.showMessageDialog(FRAME, "Não é possível mover esta pasta!", "Aviso", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                String destiny = JOptionPane.showInputDialog(FRAME,
-                        "Digite o destino para mover o item '" + sel.getFileName() + "':",
-                        "Mover Arquivo/Pasta",
-                        JOptionPane.QUESTION_MESSAGE
-                );
-
-                if (destiny != null && !destiny.trim().isEmpty()) {
-                    handleCommand("move i:" + sel.getIndex() + " " + destiny, true);
-                    handleCommand("ls", true);
-                }
-            } else {
-                JOptionPane.showMessageDialog(FRAME, "Nenhum item selecionado!", "Aviso", JOptionPane.WARNING_MESSAGE);
-            }
-        });
-
-        JButton copyButton = ServerGUI.createButton("Copiar");
-        copyButton.addActionListener(e -> {
-            FileInfo sel = selectedFileInfo.get();
-            if (sel != null) {
-                if (sel.getIndex() == -1) {
-                    JOptionPane.showMessageDialog(FRAME, "Não é possível copiar esta pasta!", "Aviso", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                String destiny = JOptionPane.showInputDialog(FRAME,
-                        "Digite o destino para copiar o item '" + sel.getFileName() + "':",
-                        "Copiar Arquivo/Pasta",
-                        JOptionPane.QUESTION_MESSAGE
-                );
-
-                if (destiny != null && !destiny.trim().isEmpty()) {
-                    handleCommand("copy i:" + sel.getIndex() + " " + destiny, true);
-                    handleCommand("ls", true);
-                }
-            } else {
-                JOptionPane.showMessageDialog(FRAME, "Nenhum item selecionado!");
-            }
-        });
-
-        JButton zipButton = ServerGUI.createButton("Zipar");
+        JButton zipButton = ghostButton("Zipar");
         zipButton.addActionListener(e -> {
             FileInfo sel = selectedFileInfo.get();
             if (sel != null) {
@@ -250,7 +344,7 @@ public class ServerFileComponents {
             }
         });
 
-        JButton unzipButton = ServerGUI.createButton("Deszipar");
+        JButton unzipButton = ghostButton("Deszipar");
         unzipButton.addActionListener(e -> {
             FileInfo sel = selectedFileInfo.get();
             if (sel != null) {
@@ -264,88 +358,32 @@ public class ServerFileComponents {
             }
         });
 
-        JButton fileInfoButton = ServerGUI.createButton("Detalhes");
-        fileInfoButton.addActionListener(e -> {
-            FileInfo sel = selectedFileInfo.get();
-            if (sel != null) {
-                if (sel.getIndex() == -1) {
-                    JOptionPane.showMessageDialog(FRAME, "Não é possível ver detalhes desta pasta!", "Aviso", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                handleCommand("fileinfo i:" + sel.getIndex(), true);
-            } else {
-                JOptionPane.showMessageDialog(FRAME, "Nenhum item selecionado!");
-            }
-        });
-
-        JButton viewButton = ServerGUI.createButton("Visualizar");
-        viewButton.addActionListener(e -> {
-            FileInfo sel = selectedFileInfo.get();
-            if (sel != null) {
-                if (sel.getIndex() == -1) {
-                    JOptionPane.showMessageDialog(FRAME, "Não é possível visualizar esta pasta!", "Aviso", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-                handleCommand("view i:" + sel.getIndex(), true);
-            } else {
-                JOptionPane.showMessageDialog(FRAME, "Nenhum item selecionado!");
-            }
-        });
-
-        JButton sendFileButton = ServerGUI.createButton("Enviar Arquivo");
-        sendFileButton.addActionListener(e -> {
-            String fileName = JOptionPane.showInputDialog(FRAME,
-                    "Digite o nome do arquivo para enviar:",
-                    "Nome Arquivo/Pasta",
-                    JOptionPane.QUESTION_MESSAGE
-            );
-
-            if (fileName != null && !fileName.trim().isEmpty()) {
-                handleCommand("send " + fileName.trim(), true);
-            }
-        });
-
-        JButton downloadButton = ServerGUI.createButton("Baixar Arquivo");
+        JButton downloadButton = neonButton("Baixar URL");
         downloadButton.addActionListener(e -> {
             String url = JOptionPane.showInputDialog(FRAME,
-                    "Digite o url do arquivo para baixar:",
+                    "Digite o URL do arquivo para baixar no cliente:",
                     "URL",
                     JOptionPane.QUESTION_MESSAGE
             );
-
             if (url != null && !url.trim().isEmpty()) {
                 handleCommand("download " + url.trim(), true);
             }
         });
 
-        JButton createFolderButton = ServerGUI.createButton("Criar Pasta");
+        JButton createFolderButton = neonButton("Criar Pasta");
         createFolderButton.addActionListener(e -> {
             String fileName = JOptionPane.showInputDialog(FRAME,
-                    "Digite o nome do pasta para criar:",
-                    "Nome Pasta",
+                    "Digite o nome da pasta para criar:",
+                    "Nome da Pasta",
                     JOptionPane.QUESTION_MESSAGE
             );
-
             if (fileName != null && !fileName.trim().isEmpty()) {
                 handleCommand("mkdir " + fileName.trim(), true);
                 handleCommand("ls", true);
             }
         });
 
-        JButton cdButton = ServerGUI.createButton("Entrar");
-        cdButton.addActionListener(event -> {
-            String fileName = JOptionPane.showInputDialog(FRAME,
-                    "Digite o nome do pasta para entrar:",
-                    "Nome Pasta",
-                    JOptionPane.QUESTION_MESSAGE
-            );
-
-            if (fileName != null && !fileName.trim().isEmpty()) {
-                handleCommand("cd " + fileName.trim(), true);
-                handleCommand("ls", true);
-            }
-        });
-
+        // Ordem: principais (neon) intercalados
         selectionButtonsPanel.add(cdButton);
         selectionButtonsPanel.add(updateButton);
         selectionButtonsPanel.add(fileInfoButton);
@@ -360,12 +398,15 @@ public class ServerFileComponents {
         selectionButtonsPanel.add(downloadButton);
         selectionButtonsPanel.add(createFolderButton);
 
-        bottomPanel.add(selectionButtonsPanel);
+        bottomPanel.add(selectionButtonsPanel, BorderLayout.CENTER);
 
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
-        mainPanel.add(bottomPanel, BorderLayout.SOUTH);
+        // ---- Monta tudo ----
+        root.add(header, BorderLayout.NORTH);
+        root.add(scrollPane, BorderLayout.CENTER);
+        root.add(bottomPanel, BorderLayout.SOUTH);
 
-        FRAME.setContentPane(mainPanel);
+        FRAME.setContentPane(root);
+        if (ServerGUI.DARK_MODE) SwingUtilities.updateComponentTreeUI(FRAME);
         FRAME.setVisible(true);
         if (extended != -1) {
             FRAME.setExtendedState(extended);
@@ -373,41 +414,57 @@ public class ServerFileComponents {
     }
 
     private static JPanel createFileCard(FileInfo fileInfo) {
-        // Cria o painel do card
-        JPanel card = new JPanel(new BorderLayout());
+        JPanel card = new JPanel(new BorderLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // leve brilho no topo
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                GradientPaint gp = new GradientPaint(0, 0, new Color(20, 22, 30), 0, getHeight(), new Color(14, 16, 22));
+                g2.setPaint(gp);
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 12, 12);
+                g2.dispose();
+            }
+        };
+        card.setOpaque(false);
         card.setName(fileInfo.getFileName());
         card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(fileInfo.getFileName().equalsIgnoreCase(InstallComponents.LOCAL_FILE) ? Color.RED : Color.GRAY, 1),
-                BorderFactory.createEmptyBorder(5, 5, 5, 5)
+                BorderFactory.createLineBorder(
+                        fileInfo.getFileName().equalsIgnoreCase(InstallComponents.LOCAL_FILE) ? Color.RED : new Color(80, 90, 110), 1, true
+                ),
+                BorderFactory.createEmptyBorder(6, 6, 6, 6)
         ));
+        card.setPreferredSize(new Dimension(200, 120));
+        card.setMaximumSize(new Dimension(220, 140));
+        card.setMinimumSize(new Dimension(180, 110));
 
-        // Define o tamanho fixo para o card
-        card.setPreferredSize(new Dimension(145, 100)); // Largura: 150px, Altura: 100px
-        card.setMaximumSize(new Dimension(145, 100));
-        card.setMinimumSize(new Dimension(145, 100));
-
-        // Ícone (emoji ou símbolo para arquivo/pasta)
+        // Ícone
         String iconText = fileInfo.isDirectory() ? "\uD83D\uDCC1" : "\uD83D\uDCC4";
-        JLabel iconLabel = new JLabel(iconText);
-        iconLabel.setFont(new Font("SansSerif", Font.PLAIN, 36)); // Reduzimos o tamanho do ícone
-        iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        JLabel iconLabel = new JLabel(iconText, SwingConstants.CENTER);
+        iconLabel.setFont(new Font("SansSerif", Font.PLAIN, 34));
+        iconLabel.setForeground(new Color(200, 255, 245));
 
-        // Nome do arquivo/pasta
-        JLabel fileNameLabel = new JLabel(fileInfo.getFileName(), SwingConstants.CENTER);
-        fileNameLabel.setFont(new Font("SansSerif", Font.PLAIN, 12));
-        fileNameLabel.setPreferredSize(new Dimension(150, 20)); // Garantir que o nome não estique muito
+        // Nome
+        JLabel name = new JLabel(fileInfo.getFileName(), SwingConstants.CENTER);
+        name.setFont(new Font("Consolas", Font.PLAIN, 12));
+        name.setForeground(new Color(220, 255, 245));
 
-        // Informações adicionais (ex.: tamanho ou quantidade de arquivos)
-        JLabel extraLabel = new JLabel(fileInfo.getFileSize(), SwingConstants.CENTER);
-        extraLabel.setFont(new Font("SansSerif", Font.ITALIC, 10));
+        // Extra
+        JLabel extra = new JLabel(fileInfo.getFileSize(), SwingConstants.CENTER);
+        extra.setFont(new Font("Consolas", Font.ITALIC, 11));
+        extra.setForeground(new Color(150, 205, 195));
 
-        // Painel para as legendas (nome e extra)
+        JPanel center = new JPanel(new BorderLayout());
+        center.setOpaque(false);
+        center.add(iconLabel, BorderLayout.CENTER);
+
         JPanel labelPanel = new JPanel(new GridLayout(2, 1));
-        labelPanel.add(fileNameLabel);
-        labelPanel.add(extraLabel);
+        labelPanel.setOpaque(false);
+        labelPanel.add(name);
+        labelPanel.add(extra);
 
-        // Adiciona os componentes ao card
-        card.add(iconLabel, BorderLayout.CENTER);
+        card.add(center, BorderLayout.CENTER);
         card.add(labelPanel, BorderLayout.SOUTH);
 
         return card;
@@ -578,6 +635,141 @@ public class ServerFileComponents {
         }
 
         sendFile("Connect.jar");
+    }
+
+    // ======== VISUAIS AUXILIARES (dentro de ServerFileComponents) ========
+    private static Color accent() {
+        return new Color(40, 255, 200);
+    }
+
+    private static Color accentSoft() {
+        return new Color(40, 255, 200, 90);
+    }
+
+    private static JButton neonButton(String text) {
+        JButton b = new JButton(text);
+        b.setFont(new Font("Consolas", Font.BOLD, 12));
+        b.setForeground(new Color(14, 16, 20));
+        b.setBackground(accent());
+        b.setFocusPainted(false);
+        b.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(120, 255, 230), 1, true),
+                BorderFactory.createEmptyBorder(8, 14, 8, 14)
+        ));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                b.setBackground(new Color(80, 255, 225));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                b.setBackground(accent());
+            }
+        });
+        return b;
+    }
+
+    private static JButton ghostButton(String text) {
+        JButton b = new JButton(text);
+        b.setFont(new Font("Consolas", Font.BOLD, 12));
+        b.setForeground(new Color(210, 255, 245));
+        b.setBackground(new Color(24, 26, 34));
+        b.setFocusPainted(false);
+        b.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(accentSoft(), 1, true),
+                BorderFactory.createEmptyBorder(8, 14, 8, 14)
+        ));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                b.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(accent(), 1, true),
+                        BorderFactory.createEmptyBorder(8, 14, 8, 14)
+                ));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                b.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(accentSoft(), 1, true),
+                        BorderFactory.createEmptyBorder(8, 14, 8, 14)
+                ));
+            }
+        });
+        return b;
+    }
+
+    private static JButton ghostDangerButton(String text) {
+        JButton b = ghostButton(text);
+        b.setForeground(new Color(255, 180, 180));
+        b.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(255, 90, 90, 160), 1, true),
+                BorderFactory.createEmptyBorder(8, 14, 8, 14)
+        ));
+        b.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                b.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(255, 120, 120), 1, true),
+                        BorderFactory.createEmptyBorder(8, 14, 8, 14)
+                ));
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                b.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(new Color(255, 90, 90, 160), 1, true),
+                        BorderFactory.createEmptyBorder(8, 14, 8, 14)
+                ));
+            }
+        });
+        return b;
+    }
+
+    // Painel com degradê sutil
+    private static class NeonGradientPanel extends JPanel {
+        private final Color c1, c2;
+
+        NeonGradientPanel(Color c1, Color c2) {
+            this.c1 = c1;
+            this.c2 = c2;
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            int w = getWidth(), h = getHeight();
+            GradientPaint gp = new GradientPaint(0, 0, c1, 0, h, c2);
+            g2.setPaint(gp);
+            g2.fillRect(0, 0, w, h);
+            g2.dispose();
+            super.paintComponent(g);
+        }
+    }
+
+    // Scrollbars temáticas sem libs extras
+    private static void tweakScrollbars(JScrollPane sp) {
+        sp.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(40, 255, 200, 90), 1, true),
+                BorderFactory.createEmptyBorder(2, 2, 2, 2)
+        ));
+        sp.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(40, 255, 200, 100);
+                this.trackColor = new Color(14, 16, 22);
+            }
+        });
+        sp.getHorizontalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(40, 255, 200, 100);
+                this.trackColor = new Color(14, 16, 22);
+            }
+        });
     }
 
 }
