@@ -14,6 +14,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.plaf.LayerUI;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
@@ -22,6 +23,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.HashMap;
@@ -87,6 +89,7 @@ public class ServerGUI extends JFrame {
     public static JButton fpsButton;
     private final JButton folderButton;
     private final JButton clearButton;
+    private final JButton matrixButton;
 
     // ===== Métricas de rede =====
     private double download = 0;
@@ -107,6 +110,10 @@ public class ServerGUI extends JFrame {
     private JLabel headerTitle;
     private JLabel headerSubtitle;
     private JLabel statusBar;
+
+    // ===== Matrix rain overlay =====
+    private JLayer<JComponent> matrixLayer;
+    private MatrixRainLayerUI matrixUI;
 
     // ===== Singleton =====
     private static ServerGUI instance;
@@ -175,6 +182,8 @@ public class ServerGUI extends JFrame {
         fpsButton = createButton("FPS (" + ServerImageComponents.FPS + ")");
         folderButton = createButton("Arquivos");
         clearButton = createButton("Limpar");
+        matrixButton = createButton("Matrix");
+
 
         JPanel commandPanel = new CardPanel("Controle de Comandos");
         commandPanel.setLayout(new GridBagLayout());
@@ -207,6 +216,7 @@ public class ServerGUI extends JFrame {
         commandButtons.add(fpsButton);
         commandButtons.add(folderButton);
         commandButtons.add(clearButton);
+        commandButtons.add(matrixButton);
 
         gc.gridx = 0;
         gc.gridy = 1;
@@ -330,7 +340,7 @@ public class ServerGUI extends JFrame {
         content.add(rightScroll, BorderLayout.EAST);
         content.add(statusWrap, BorderLayout.SOUTH);
 
-        setContentPane(content);
+        setContentPane(wrapWithMatrix(content));
 
         // ======= Autocomplete =======
         setupAutocomplete();
@@ -376,6 +386,12 @@ public class ServerGUI extends JFrame {
         clearButton.addActionListener(event -> {
             logsArea.setText("Servidor iniciado na porta " + Connect.PORT + "\n");
             JOptionPane.showMessageDialog(this, "Console limpo!", "Console", JOptionPane.INFORMATION_MESSAGE);
+        });
+        matrixButton.addActionListener(event -> {
+            boolean on = toggleMatrix();
+            JOptionPane.showMessageDialog(this,
+                    on ? "Efeito Matrix ligado!" : "Efeito Matrix desligado!",
+                    "Matrix", JOptionPane.INFORMATION_MESSAGE);
         });
 
         clientCombo.addItemListener(e -> {
@@ -508,6 +524,29 @@ public class ServerGUI extends JFrame {
             }
         });
         return b;
+    }
+
+    private JComponent wrapWithMatrix(JComponent base) {
+        matrixUI = new MatrixRainLayerUI();
+        matrixLayer = new JLayer<>(base, matrixUI);
+        matrixUI.setMatrixEnabled(true); // inicia ligado
+        // Atalho: F12 para ligar/desligar
+        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("F12"), "toggleMatrix");
+        getRootPane().getActionMap().put("toggleMatrix", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                toggleMatrix();
+            }
+        });
+        return matrixLayer;
+    }
+
+    private boolean toggleMatrix() {
+        if (matrixUI == null) return false;
+        matrixUI.setMatrixEnabled(!matrixUI.isMatrixEnabled());
+        if (matrixLayer != null) matrixLayer.repaint();
+        return matrixUI.isMatrixEnabled();
     }
 
     // ====== Seções (cards) ======
@@ -1176,6 +1215,147 @@ public class ServerGUI extends JFrame {
         public GridCard(String title, int rows, int cols) {
             super(title);
             setLayout(new GridLayout(rows, cols, 8, 8));
+        }
+    }
+
+    // ===== Matrix rain overlay (sem bloquear cliques) =====
+    private static class MatrixRainLayerUI extends LayerUI<JComponent> implements ActionListener {
+
+        private final Timer timer = new Timer(40, this); // ~25 fps
+        private boolean enabled = true;
+
+        // Aparência
+        private final int fontSize = 16;
+        private final Font font = new Font("Consolas", Font.PLAIN, fontSize);
+        private final Color headColor = new Color(220, 255, 220);    // “cabeça” da coluna
+        private final Color neon = new Color(0x39FF14);              // verde neon do teu tema
+
+        // Estado dinâmico
+        private int cols = 0, rows = 0, w = 0, h = 0;
+        private float[] headY;      // posição do topo (cabeça) por coluna
+        private float[] speed;      // velocidade por coluna (px/frame)
+        private int[] trail;      // comprimento da trilha em chars
+        private final java.util.Random rnd = new java.util.Random();
+
+        private final String charset =
+                "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
+                        "アイウエオカキクケコサシスセソタチツテトナニヌネノﾐﾗﾘﾙﾚﾛ｡｢｣､･" +
+                        "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞ";
+
+        @Override
+        public void installUI(JComponent c) {
+            super.installUI(c);
+            timer.start();
+        }
+
+        @Override
+        public void uninstallUI(JComponent c) {
+            timer.stop();
+            super.uninstallUI(c);
+        }
+
+        public void setMatrixEnabled(boolean on) {
+            this.enabled = on;
+        }
+
+        public boolean isMatrixEnabled() {
+            return enabled;
+        }
+
+        @Override
+        public void paint(Graphics g, JComponent c) {
+            // pinta UI base
+            super.paint(g, c);
+            if (!enabled) return;
+
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+            // reconfigura grid se tamanho mudar
+            if (c.getWidth() != w || c.getHeight() != h) {
+                w = c.getWidth();
+                h = c.getHeight();
+                cols = Math.max(1, (int) Math.ceil(w / (double) fontSize));
+                rows = Math.max(1, (int) Math.ceil(h / (double) fontSize));
+                headY = new float[cols];
+                speed = new float[cols];
+                trail = new int[cols];
+                for (int i = 0; i < cols; i++) {
+                    resetColumn(i, true);
+                    // começa em posição aleatória pra não sincronizar
+                    headY[i] = rnd.nextInt(h + 200);
+                }
+            }
+
+            // desenha colunas
+            g2.setFont(font);
+            for (int i = 0; i < cols; i++) {
+                float x = i * (float) fontSize;
+
+                // cabeça da chuva: mais clara
+                float yHead = headY[i];
+                if (yHead >= -fontSize && yHead <= h + fontSize) {
+                    g2.setColor(headColor);
+                    drawChar(g2, x, yHead);
+                }
+
+                // trilha: verde neon com alpha decaindo
+                int len = trail[i];
+                for (int j = 1; j <= len; j++) {
+                    float y = yHead - j * (float) fontSize;
+                    if (y < -fontSize) break;
+                    if (y > h + fontSize) continue;
+                    float alpha = (1f - (j / (float) len)); // 0..1
+                    // curva suave e limite máximo de brilho
+                    alpha = alpha * alpha * 0.85f;
+                    int a = Math.min(255, Math.max(0, (int) (alpha * 255)));
+                    g2.setColor(new Color(neon.getRed(), neon.getGreen(), neon.getBlue(), a));
+                    drawChar(g2, x, y);
+                }
+            }
+
+            g2.dispose();
+        }
+
+        private void drawChar(Graphics2D g2, float x, float y) {
+            char ch = charset.charAt(rnd.nextInt(charset.length()));
+            // baseline: soma fontSize pra alinhar na “linha”
+            g2.drawString(String.valueOf(ch), x, y + fontSize);
+        }
+
+        private void step() {
+            if (headY == null) return;
+            for (int i = 0; i < cols; i++) {
+                headY[i] += speed[i];
+                // quando a trilha inteira passou da tela, reseta no topo com novos parâmetros
+                if (headY[i] - trail[i] * fontSize > h + fontSize) {
+                    resetColumn(i, false);
+                }
+            }
+        }
+
+        private void resetColumn(int i, boolean firstSetup) {
+            speed[i] = 2f + rnd.nextFloat() * 4f;      // 2–6 px/frame
+            trail[i] = 8 + rnd.nextInt(20);            // 8–27 caracteres de trilha
+            if (!firstSetup) {
+                // recomeça um pouco acima da tela pra vir "caindo"
+                headY[i] = -rnd.nextInt(200);
+            }
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (!enabled) return;
+            step();
+            // dispara repintura do JLayer
+            firePropertyChange("tick", 0, 1);
+        }
+
+        @Override
+        public void applyPropertyChange(PropertyChangeEvent pce, JLayer<? extends JComponent> l) {
+            if ("tick".equals(pce.getPropertyName())) {
+                l.repaint();
+            }
         }
     }
 
