@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.process;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.ProcessComponents;
+import br.com.introcdc.connect.client.components.ClientProcessComponents;
 
 public class ClientCommandListProcess extends ClientCommand {
 
@@ -14,12 +14,12 @@ public class ClientCommandListProcess extends ClientCommand {
 
     @Override
     public void execute(String command, String input) throws Exception {
-        if (ProcessComponents.PROCESS_MAP.isEmpty()) {
+        if (ClientProcessComponents.PROCESS_MAP.isEmpty()) {
             msg("Não há nenhum processo executando pelo programa agora!");
             return;
         }
-        for (Integer id : ProcessComponents.PROCESS_LIST.keySet()) {
-            msg("#" + id + ": " + ProcessComponents.PROCESS_LIST.get(id));
+        for (Integer id : ClientProcessComponents.PROCESS_LIST.keySet()) {
+            msg("#" + id + ": " + ClientProcessComponents.PROCESS_LIST.get(id));
         }
     }
 

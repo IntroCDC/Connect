@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.file.manipulate;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 
 import java.io.File;
 
@@ -20,7 +20,7 @@ public class ClientCommandMakeDir extends ClientCommand {
             msg("Digite um nome para criar uma pasta!");
             return;
         }
-        File folder = FileComponents.newFile(input);
+        File folder = ClientFileComponents.newFile(input);
         if (folder.exists() && folder.isDirectory()) {
             msg("Esta pasta já existe!");
             return;

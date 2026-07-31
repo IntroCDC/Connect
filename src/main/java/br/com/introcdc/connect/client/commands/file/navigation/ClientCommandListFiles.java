@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.file.navigation;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 import br.com.introcdc.connect.client.components.settings.FileInfo;
 import oshi.util.FormatUtil;
 
@@ -20,7 +20,7 @@ public class ClientCommandListFiles extends ClientCommand {
 
     @Override
     public void execute(String command, String input) throws Exception {
-        File folder = new File(FileComponents.FOLDER);
+        File folder = new File(ClientFileComponents.FOLDER);
         File[] files = folder.listFiles();
         boolean invalid = files == null;
         if (invalid) {

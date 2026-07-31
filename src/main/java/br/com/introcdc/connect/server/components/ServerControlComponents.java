@@ -3,7 +3,6 @@ package br.com.introcdc.connect.server.components;
  * Written by IntroCDC, Bruno Coêlho at 15/01/2025 - 18:06
  */
 
-import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.remote.RemoteEvent;
 import br.com.introcdc.connect.server.ConnectServer;
 import br.com.introcdc.connect.server.connection.SocketKeepAlive;
@@ -15,12 +14,15 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class ServerControlComponents {
+
+    public static BlockingQueue<Socket> controlSockets = new LinkedBlockingQueue<>();
 
     public static final JsonParser PARSER = new JsonParser();
 
@@ -38,9 +40,9 @@ public class ServerControlComponents {
 
     public static void startControlServer() {
         for (; ; ) {
-            try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + 6)) {
+            try {
                 while (true) {
-                    Socket clientSocket = serverSocket.accept();
+                    Socket clientSocket = controlSockets.take();
                     OUTPUT = new ObjectOutputStream(clientSocket.getOutputStream());
                     new Thread(new SocketKeepAlive(clientSocket)).start();
                 }

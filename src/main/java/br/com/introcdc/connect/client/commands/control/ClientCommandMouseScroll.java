@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.control;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.ControlComponents;
+import br.com.introcdc.connect.client.components.ClientControlComponents;
 
 public class ClientCommandMouseScroll extends ClientCommand {
 
@@ -16,7 +16,7 @@ public class ClientCommandMouseScroll extends ClientCommand {
     public void execute(String command, String input) throws Exception {
         try {
             int scroll = Integer.parseInt(input);
-            ControlComponents.ROBOT_INSTANCE.mouseWheel(scroll);
+            ClientControlComponents.ROBOT_INSTANCE.mouseWheel(scroll);
             msg("Movimentado o scroll em " + scroll + "!");
         } catch (Exception ignored) {
             msg("Digite um número válido!");

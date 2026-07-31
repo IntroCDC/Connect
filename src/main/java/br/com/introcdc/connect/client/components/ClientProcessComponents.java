@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ProcessComponents {
+public class ClientProcessComponents {
     // Process Variables
     public static int LAST_ID = -1;
     public static Integer PROCESS = Integer.valueOf("0");

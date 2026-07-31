@@ -15,18 +15,19 @@ import oshi.SystemInfo;
 import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.io.DataOutputStream;
 import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.concurrent.TimeUnit;
 
-public class ControlComponents {
+public class ClientControlComponents {
 
     // Control Variables
     public static Robot ROBOT_INSTANCE;
     public static boolean ROBOT = true;
 
     public static void startUpdater() {
-        ConnectClient.EXECUTOR.scheduleAtFixedRate(ControlComponents::sendBasicInfo, 1, 30, TimeUnit.SECONDS);
+        ConnectClient.EXECUTOR.scheduleAtFixedRate(ConnectClient.runnable(ClientControlComponents::sendBasicInfo), 1, 30, TimeUnit.SECONDS);
     }
 
     public static void sendBasicInfo() {
@@ -47,14 +48,14 @@ public class ControlComponents {
                         continue;
                     }
 
-                    if (Character.isUpperCase(c) || FileComponents.isSpecialCharacter(c)) {
+                    if (Character.isUpperCase(c) || ClientFileComponents.isSpecialCharacter(c)) {
                         robot.keyPress(KeyEvent.VK_SHIFT);
                     }
 
                     robot.keyPress(keyCode);
                     robot.keyRelease(keyCode);
 
-                    if (Character.isUpperCase(c) || FileComponents.isSpecialCharacter(c)) {
+                    if (Character.isUpperCase(c) || ClientFileComponents.isSpecialCharacter(c)) {
                         robot.keyRelease(KeyEvent.VK_SHIFT);
                     }
 
@@ -86,14 +87,16 @@ public class ControlComponents {
     }
 
     public static void startControlClient() {
-        try (Socket socket = new Socket(Connect.IP, Connect.PORT + 6);
-             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream())) {
+        try (Socket socket = new Socket(Connect.IP, Connect.PORT)) {
+            new DataOutputStream(socket.getOutputStream()).writeUTF("SECONDARY:" + ConnectClient.KEY + ":CONTROL");
+            try (ObjectInputStream ois = new ObjectInputStream(socket.getInputStream())) {
 
-            while (ImageComponents.SCREEN_LIVE) {
-                Object obj = ois.readObject();
-                if (obj instanceof RemoteEvent) {
-                    RemoteEvent event = (RemoteEvent) obj;
-                    handleEvent(ROBOT_INSTANCE, event);
+                while (ClientImageComponents.SCREEN_LIVE) {
+                    Object obj = ois.readObject();
+                    if (obj instanceof RemoteEvent) {
+                        RemoteEvent event = (RemoteEvent) obj;
+                        handleEvent(ROBOT_INSTANCE, event);
+                    }
                 }
             }
         } catch (Exception exception) {

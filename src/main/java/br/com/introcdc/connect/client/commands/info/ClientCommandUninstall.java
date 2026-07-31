@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.info;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.InstallComponents;
+import br.com.introcdc.connect.client.components.ClientInstallComponents;
 
 public class ClientCommandUninstall extends ClientCommand {
 
@@ -15,7 +15,7 @@ public class ClientCommandUninstall extends ClientCommand {
     @Override
     public void execute(String command, String input) throws Exception {
         msg("Desinstalando e fechando!");
-        InstallComponents.uninstall();
+        ClientInstallComponents.uninstall();
         System.exit(0);
     }
 

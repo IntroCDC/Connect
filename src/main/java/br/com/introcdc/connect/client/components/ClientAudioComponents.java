@@ -10,7 +10,7 @@ import javax.sound.sampled.*;
 import java.io.*;
 import java.net.Socket;
 
-public class AudioComponents {
+public class ClientAudioComponents {
 
     // Audio Info
     public static final AudioFormat FORMAT = new AudioFormat(44100, 16, 2, true, true);
@@ -121,7 +121,7 @@ public class AudioComponents {
             AudioInputStream audioInputStream = new AudioInputStream(bais, FORMAT, audioData.length);
             AudioSystem.write(audioInputStream, new AudioFileFormat.Type("WAVE", "wave"), fos);
         } catch (Exception exception) {
-            FileComponents.deleteFile(file);
+            ClientFileComponents.deleteFile(file);
             ConnectClient.msg("Ocorreu um erro ao salvar o arquivo de gravação! (" + exception.getMessage() + ")");
             ConnectClient.exception(exception);
             return;
@@ -130,11 +130,12 @@ public class AudioComponents {
         ConnectClient.msg("Enviando arquivo " + file.getName() + "...");
         ConnectClient.msg("receive-file");
         new Thread(() -> {
-            try (Socket fileSocket = new Socket(Connect.IP, Connect.PORT + 3);
+            try (Socket fileSocket = new Socket(Connect.IP, Connect.PORT);
                  DataOutputStream dos = new DataOutputStream(fileSocket.getOutputStream());
                  BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file))) {
+                dos.writeUTF("SECONDARY:" + ConnectClient.KEY + ":RECEIVE_FILE");
 
-                dos.writeUTF(FileComponents.removeCharacters(file.getName()));
+                dos.writeUTF(ClientFileComponents.removeCharacters(file.getName()));
                 dos.flush();
 
                 byte[] buffer = new byte[4096];
@@ -147,7 +148,7 @@ public class AudioComponents {
                 ConnectClient.exception(exception);
             }
 
-            FileComponents.deleteFile(file);
+            ClientFileComponents.deleteFile(file);
         }).start();
     }
 
@@ -163,18 +164,19 @@ public class AudioComponents {
                 ConnectClient.msg("stopliveaudiouserMicrofone do cliente não encontrado!");
                 return;
             }
-            ImageComponents.AUDIO_USER_LIVE = true;
+            ClientImageComponents.AUDIO_USER_LIVE = true;
         } else {
             speakers = getSourceDataLine();
             if (speakers == null) {
                 ConnectClient.msg("stopliveaudioserverAlto-falante do cliente não encontrado!");
                 return;
             }
-            ImageComponents.AUDIO_SERVER_LIVE = true;
+            ClientImageComponents.AUDIO_SERVER_LIVE = true;
         }
         ConnectClient.msg("Conectando ao servidor de áudio " + (fromUser ? "do cliente para servidor" : "do servidor para o cliente") + "!");
 
-        try (Socket socket = new Socket(Connect.IP, port)) {
+        try (Socket socket = new Socket(Connect.IP, Connect.PORT)) {
+            new DataOutputStream(socket.getOutputStream()).writeUTF("SECONDARY:" + ConnectClient.KEY + ":" + (fromUser ? "AUDIO_USER" : "AUDIO_SERVER"));
             if (fromUser) {
                 OutputStream out = socket.getOutputStream();
 
@@ -182,7 +184,7 @@ public class AudioComponents {
                 ConnectClient.msg("Enviando áudio do microfone para o servidor...");
 
                 try {
-                    while (ImageComponents.AUDIO_USER_LIVE) {
+                    while (ClientImageComponents.AUDIO_USER_LIVE) {
                         int bytesRead = microphone.read(buffer, 0, buffer.length);
                         if (bytesRead == -1) break;
                         out.write(buffer, 0, bytesRead);
@@ -201,7 +203,7 @@ public class AudioComponents {
                 ConnectClient.msg("Recebendo áudio do servidor e reproduzindo...");
 
                 try {
-                    while (ImageComponents.AUDIO_SERVER_LIVE && (bytesRead = in.read(buffer)) != -1) {
+                    while (ClientImageComponents.AUDIO_SERVER_LIVE && (bytesRead = in.read(buffer)) != -1) {
                         speakers.write(buffer, 0, bytesRead);
                     }
                 } catch (Exception exception) {
@@ -213,10 +215,10 @@ public class AudioComponents {
                 }
             }
         } catch (Exception exception) {
-            if (ImageComponents.LIVE_STOPPER) {
+            if (ClientImageComponents.LIVE_STOPPER) {
                 if (fromUser) {
-                    if (ImageComponents.AUDIO_USER_LIVE) {
-                        ImageComponents.AUDIO_USER_LIVE = false;
+                    if (ClientImageComponents.AUDIO_USER_LIVE) {
+                        ClientImageComponents.AUDIO_USER_LIVE = false;
                     }
                     try {
                         microphone.close();
@@ -225,8 +227,8 @@ public class AudioComponents {
 
                     ConnectClient.msg("stopliveaudiouserOcorreu um erro na transmissão de áudio do cliente para o servidor! (" + exception.getMessage() + ")");
                 } else {
-                    if (ImageComponents.AUDIO_SERVER_LIVE) {
-                        ImageComponents.AUDIO_SERVER_LIVE = false;
+                    if (ClientImageComponents.AUDIO_SERVER_LIVE) {
+                        ClientImageComponents.AUDIO_SERVER_LIVE = false;
                     }
                     try {
                         speakers.close();

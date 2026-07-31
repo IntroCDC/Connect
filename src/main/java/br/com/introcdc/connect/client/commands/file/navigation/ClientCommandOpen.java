@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.file.navigation;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 
 import java.awt.*;
 import java.io.File;
@@ -17,7 +17,7 @@ public class ClientCommandOpen extends ClientCommand {
 
     @Override
     public void execute(String command, String input) throws Exception {
-        File file = FileComponents.file(input);
+        File file = ClientFileComponents.file(input);
         if (!file.exists()) {
             msg("Arquivo ou pasta não encontrado!");
             return;

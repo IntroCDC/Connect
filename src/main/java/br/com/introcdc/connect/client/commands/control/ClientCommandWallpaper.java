@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.control;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.win32.W32APIOptions;
@@ -29,7 +29,7 @@ public class ClientCommandWallpaper extends ClientCommand {
 
     @Override
     public void execute(String command, String input) throws Exception {
-        File wallpaperFile = FileComponents.file(input);
+        File wallpaperFile = ClientFileComponents.file(input);
         if (!wallpaperFile.exists()) {
             msg("Arquivo para wallpaper não encontrado!");
             return;

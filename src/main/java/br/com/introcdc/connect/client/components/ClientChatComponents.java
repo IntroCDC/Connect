@@ -13,7 +13,7 @@ import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatComponents {
+public class ClientChatComponents {
 
     public static JFrame CHAT_FRAME;
     public static JTextArea CHAT_TEXT;

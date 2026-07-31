@@ -6,11 +6,12 @@ package br.com.introcdc.connect.client.commands.file.external;
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
-import br.com.introcdc.connect.client.components.InstallComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
+import br.com.introcdc.connect.client.components.ClientInstallComponents;
 
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -28,40 +29,43 @@ public class ClientCommandSend extends ClientCommand {
             return;
         }
 
-        ConnectClient.EXECUTOR.schedule(() -> new Thread(() -> {
-            try (Socket fileSocket = new Socket(Connect.IP, Connect.PORT + 4);
-                 DataInputStream dis = new DataInputStream(fileSocket.getInputStream());
-                 BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream((input.equalsIgnoreCase("Connect.jar") ?
-                         new File(dis.readUTF()) : new File(FileComponents.FOLDER, dis.readUTF())).toPath()))) {
-                String fileName = dis.readUTF();
-                msg("Recebendo arquivo " + fileName + " do servidor...");
-                boolean temp = dis.readUTF().replace("temp:", "").equals("true");
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-                while ((bytesRead = dis.read(buffer)) != -1) {
-                    bos.write(buffer, 0, bytesRead);
-                }
-                if (temp) {
-                    ConnectClient.EXECUTOR.schedule(() -> new Thread(() -> {
-                        File folder = new File(FileComponents.FOLDER, fileName.replace(".zip", ""));
-                        if (!folder.exists()) {
-                            folder.mkdirs();
-                        }
-                        FileComponents.extractZip(new File(FileComponents.FOLDER, fileName), folder);
-                        FileComponents.deleteFile(new File(FileComponents.FOLDER, fileName));
-                    }).start(), Connect.DELAY, Connect.DELAY_TYPE);
-                }
+        ConnectClient.EXECUTOR.schedule(ConnectClient.runnable(() -> new Thread(() -> {
+            try (Socket fileSocket = new Socket(Connect.IP, Connect.PORT);
+                 DataOutputStream handshakeDos = new java.io.DataOutputStream(fileSocket.getOutputStream());
+                 DataInputStream dis = new DataInputStream(fileSocket.getInputStream())) {
+                handshakeDos.writeUTF("SECONDARY:" + ConnectClient.KEY + ":SEND_FILE");
+                try (BufferedOutputStream bos = new BufferedOutputStream(Files.newOutputStream((input.equalsIgnoreCase("Connect.jar") ?
+                        new File(dis.readUTF()) : new File(ClientFileComponents.FOLDER, dis.readUTF())).toPath()))) {
+                    String fileName = dis.readUTF();
+                    msg("Recebendo arquivo " + fileName + " do servidor...");
+                    boolean temp = dis.readUTF().replace("temp:", "").equals("true");
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+                    while ((bytesRead = dis.read(buffer)) != -1) {
+                        bos.write(buffer, 0, bytesRead);
+                    }
+                    if (temp) {
+                        ConnectClient.EXECUTOR.schedule(ConnectClient.runnable(() -> new Thread(() -> {
+                            File folder = new File(ClientFileComponents.FOLDER, fileName.replace(".zip", ""));
+                            if (!folder.exists()) {
+                                folder.mkdirs();
+                            }
+                            ClientFileComponents.extractZip(new File(ClientFileComponents.FOLDER, fileName), folder);
+                            ClientFileComponents.deleteFile(new File(ClientFileComponents.FOLDER, fileName));
+                        }).start()), Connect.DELAY, Connect.DELAY_TYPE);
+                    }
 
-                msg("Arquivo recebido!");
+                    msg("Arquivo recebido!");
 
-                if (fileName.equalsIgnoreCase("Connect.jar")) {
-                    ConnectClient.EXECUTOR.schedule(InstallComponents::verifyUpdate, Connect.DELAY, Connect.DELAY_TYPE);
+                    if (fileName.equalsIgnoreCase("Connect.jar")) {
+                        ConnectClient.EXECUTOR.schedule(ConnectClient.runnable(ClientInstallComponents::verifyUpdate), Connect.DELAY, Connect.DELAY_TYPE);
+                    }
                 }
             } catch (Exception exception) {
                 msg("Ocorreu um erro enviar um arquivo! (" + exception.getMessage() + ")");
                 exception(exception);
             }
-        }).start(), Connect.DELAY, Connect.DELAY_TYPE);
+        }).start()), Connect.DELAY, Connect.DELAY_TYPE);
     }
 
 }

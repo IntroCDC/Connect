@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.file.manipulate;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 
 import java.io.File;
 
@@ -26,7 +26,7 @@ public class ClientCommandCopy extends ClientCommand {
             msg("Digite o nome do arquivo inicial!");
             return;
         }
-        File file = FileComponents.file(input.split(separator, 2)[0]);
+        File file = ClientFileComponents.file(input.split(separator, 2)[0]);
         if (!file.exists()) {
             msg("Arquivo não encontrado!");
             return;
@@ -35,11 +35,11 @@ public class ClientCommandCopy extends ClientCommand {
             msg("Digite o nome do arquivo objetivo completo!");
             return;
         }
-        File to = FileComponents.newFile(input.split(separator, 2)[1]);
+        File to = ClientFileComponents.newFile(input.split(separator, 2)[1]);
         if (file.isFile() && to.isDirectory()) {
             to = new File(to, file.getName());
         }
-        FileComponents.copy(file, to);
+        ClientFileComponents.copy(file, to);
         msg("Arquivo " + file.getAbsolutePath() + " copiado para " + to.getAbsolutePath() + "!");
     }
 

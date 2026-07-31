@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.process;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.ProcessComponents;
+import br.com.introcdc.connect.client.components.ClientProcessComponents;
 
 public class ClientCommandLog extends ClientCommand {
 
@@ -20,16 +20,16 @@ public class ClientCommandLog extends ClientCommand {
         }
         try {
             Integer id = Integer.valueOf(input);
-            if (!ProcessComponents.PROCESS_LIST.containsKey(id)) {
+            if (!ClientProcessComponents.PROCESS_LIST.containsKey(id)) {
                 msg("Processo não encontrado!");
                 return;
             }
-            if (ProcessComponents.LOG_PROCESS.contains(id)) {
+            if (ClientProcessComponents.LOG_PROCESS.contains(id)) {
                 msg("Agora você não está mais recebendo logs do processo #" + id);
-                ProcessComponents.LOG_PROCESS.remove(id);
+                ClientProcessComponents.LOG_PROCESS.remove(id);
             } else {
                 msg("Agora você está recebendo logs do processo #" + id);
-                ProcessComponents.LOG_PROCESS.add(id);
+                ClientProcessComponents.LOG_PROCESS.add(id);
             }
         } catch (Exception ignored) {
             msg("Digite um número válido!");

@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.file.external;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 
 public class ClientCommandDownload extends ClientCommand {
 
@@ -21,7 +21,7 @@ public class ClientCommandDownload extends ClientCommand {
         String url = input.split(" ", 2)[0];
         String objective = input.split(" ", 2)[1];
         msg("Baixando arquivo " + url + " para " + objective + "...");
-        if (FileComponents.downloadFile(url, FileComponents.newFile(objective))) {
+        if (ClientFileComponents.downloadFile(url, ClientFileComponents.newFile(objective))) {
             msg("Arquivo " + url + " para " + objective + " baixado!");
         } else {
             msg("Ocorreu um erro ao baixar o arquivo " + url + " para " + objective + "!");

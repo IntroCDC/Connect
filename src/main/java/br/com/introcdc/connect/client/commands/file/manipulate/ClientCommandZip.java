@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.file.manipulate;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 
 import java.io.File;
 
@@ -20,16 +20,16 @@ public class ClientCommandZip extends ClientCommand {
             msg("Digite um arquivo!");
             return;
         }
-        File file = FileComponents.file(input);
+        File file = ClientFileComponents.file(input);
         if (!file.exists()) {
             msg("Arquivo não encontrado!");
             return;
         }
         msg("Zipando arquivo...");
         if (file.isDirectory()) {
-            FileComponents.createZip(file, new File(FileComponents.FOLDER, file.getName() + ".zip"), FileComponents.FOLDER.replace("\\", "/") + "/");
+            ClientFileComponents.createZip(file, new File(ClientFileComponents.FOLDER, file.getName() + ".zip"), ClientFileComponents.FOLDER.replace("\\", "/") + "/");
         } else {
-            FileComponents.createZipFile(file);
+            ClientFileComponents.createZipFile(file);
         }
         msg("Arquivo zipado!");
     }

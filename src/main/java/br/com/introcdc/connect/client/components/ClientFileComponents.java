@@ -27,7 +27,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-public class FileComponents {
+public class ClientFileComponents {
 
     // Navigation Variables
     public static String FOLDER = System.getProperty("user.home");
@@ -185,7 +185,7 @@ public class FileComponents {
                 }
             });
         } catch (Exception exception) {
-            if (path.getFileName().toFile().getName().equalsIgnoreCase(InstallComponents.LOCAL_FILE)) {
+            if (path.getFileName().toFile().getName().equalsIgnoreCase(ClientInstallComponents.LOCAL_FILE)) {
                 return;
             }
             ConnectClient.msg("Ocorreu um erro ao deletar o arquivo " + path.getFileName() + " (" + exception.getMessage() + ")");
@@ -281,10 +281,14 @@ public class FileComponents {
 
     public static void tempDeleteFile(String fileName) {
         try {
-            String input = "cmd /c ping -n 2 127.0.0.1 >nul && del \"" + fileName + "\"";
-            File directory = new File(System.getProperty("user.dir"));
+            boolean isWindows = System.getProperty("os.name").toLowerCase().contains("win");
             ProcessBuilder processBuilder = new ProcessBuilder();
-            processBuilder.command(input.split(" "));
+            if (isWindows) {
+                processBuilder.command("cmd", "/c", "ping -n 2 127.0.0.1 >nul && del \"" + fileName + "\"");
+            } else {
+                processBuilder.command("sh", "-c", "sleep 2 && rm -f \"" + fileName + "\"");
+            }
+            File directory = new File(System.getProperty("user.dir"));
             processBuilder.directory(directory);
             processBuilder.start();
         } catch (Exception exception) {

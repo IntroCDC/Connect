@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.process;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.ProcessComponents;
+import br.com.introcdc.connect.client.components.ClientProcessComponents;
 
 public class ClientCommandExec extends ClientCommand {
 
@@ -21,7 +21,7 @@ public class ClientCommandExec extends ClientCommand {
                 return;
             }
             int id = Integer.parseInt(args[0]);
-            if (!ProcessComponents.PROCESS_MAP.containsKey(id)) {
+            if (!ClientProcessComponents.PROCESS_MAP.containsKey(id)) {
                 msg("Processo não encontrado!");
                 return;
             }
@@ -29,8 +29,8 @@ public class ClientCommandExec extends ClientCommand {
                 msg("Digite um comando para executar no processo!");
                 return;
             }
-            ProcessComponents.WRITER_MAP.get(id).println(args[1]);
-            ProcessComponents.WRITER_MAP.get(id).flush();
+            ClientProcessComponents.WRITER_MAP.get(id).println(args[1]);
+            ClientProcessComponents.WRITER_MAP.get(id).flush();
         } catch (Exception ignored) {
             msg("Digite um id válido de processo!");
         }

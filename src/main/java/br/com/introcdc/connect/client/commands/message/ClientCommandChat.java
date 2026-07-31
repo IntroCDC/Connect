@@ -4,7 +4,7 @@ package br.com.introcdc.connect.client.commands.message;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.ChatComponents;
+import br.com.introcdc.connect.client.components.ClientChatComponents;
 
 public class ClientCommandChat extends ClientCommand {
 
@@ -15,14 +15,14 @@ public class ClientCommandChat extends ClientCommand {
     @Override
     public void execute(String command, String input) throws Exception {
         if (input.equalsIgnoreCase(">")) {
-            ChatComponents.showChat(null);
+            ClientChatComponents.showChat(null);
         } else if (input.equalsIgnoreCase(">>")) {
-            ChatComponents.CHAT_FRAME.setVisible(false);
+            ClientChatComponents.CHAT_FRAME.setVisible(false);
         } else if (input.equalsIgnoreCase("clear")) {
-            ChatComponents.CHAT_MESSAGES.clear();
-            ChatComponents.updateTextArea();
+            ClientChatComponents.CHAT_MESSAGES.clear();
+            ClientChatComponents.updateTextArea();
         } else {
-            ChatComponents.showChat("Servidor: " + input);
+            ClientChatComponents.showChat("Servidor: " + input);
         }
     }
 

@@ -14,6 +14,7 @@ import br.com.introcdc.connect.server.connection.SocketKeepAlive;
 import br.com.introcdc.connect.server.gui.ServerGUI;
 
 import javax.swing.*;
+import java.io.DataInputStream;
 import java.io.File;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -30,6 +31,16 @@ public class ConnectServer {
 
     public static final ScheduledExecutorService EXECUTOR =
             Executors.newScheduledThreadPool(10);
+
+    public static Runnable runnable(Runnable runnable) {
+        return () -> {
+            try {
+                runnable.run();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        };
+    }
 
     public static final Map<Integer, ClientHandler> CLIENTS = new HashMap<>();
     public static final List<Integer> TESTING = new ArrayList<>();
@@ -103,18 +114,79 @@ public class ConnectServer {
                 new Thread(() -> ServerGUI.getInstance().monitorTraffic()).start();
                 for (; ; ) {
                     Socket clientSocket = serverSocket.accept();
-                    int id = 1;
-                    while (CLIENTS.containsKey(id) || TESTING.contains(id)) {
-                        id++;
-                    }
-                    TESTING.add(id);
-                    ClientHandler handler = new ClientHandler(clientSocket, id);
-                    new Thread(new SocketKeepAlive(handler)).start();
-                    new Thread(handler).start();
-
-                    CLIENTS.put(id, handler);
-                    ServerGUI.addClient(String.valueOf(id));
-                    TESTING.remove((Object) id);
+                    new Thread(() -> {
+                        try {
+                            DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
+                            String handshake = dis.readUTF();
+                            if (handshake.equals("MAIN")) {
+                                int id = 1;
+                                while (CLIENTS.containsKey(id) || TESTING.contains(id)) {
+                                    id++;
+                                }
+                                TESTING.add(id);
+                                ClientHandler handler = new ClientHandler(clientSocket, id);
+                                new Thread(new SocketKeepAlive(handler)).start();
+                                new Thread(handler).start();
+                                CLIENTS.put(id, handler);
+                                ServerGUI.addClient(String.valueOf(id));
+                                TESTING.remove((Object) id);
+                            } else if (handshake.startsWith("SECONDARY:")) {
+                                String[] parts = handshake.split(":");
+                                String key = parts[1];
+                                String type = parts[2];
+                                ClientHandler handler = null;
+                                for (ClientHandler ch : CLIENTS.values()) {
+                                    if (ch.getClientKey() != null && ch.getClientKey().equals(key)) {
+                                        handler = ch;
+                                        break;
+                                    }
+                                }
+                                if (type.equals("CONTROL")) {
+                                    br.com.introcdc.connect.server.components.ServerControlComponents.controlSockets.put(clientSocket);
+                                } else if (type.equals("SEND_FILE")) {
+                                    br.com.introcdc.connect.server.components.ServerFileComponents.sendFileSockets.put(clientSocket);
+                                } else if (handler != null) {
+                                    switch (type) {
+                                        case "ICON_WEBCAM":
+                                            handler.iconWebcamSockets.put(clientSocket);
+                                            break;
+                                        case "ICON_SCREEN":
+                                            handler.iconScreenSockets.put(clientSocket);
+                                            break;
+                                        case "WEBCAM":
+                                            handler.webcamSockets.put(clientSocket);
+                                            break;
+                                        case "SCREEN":
+                                            handler.screenSockets.put(clientSocket);
+                                            break;
+                                        case "VIEW":
+                                            handler.viewSockets.put(clientSocket);
+                                            break;
+                                        case "AUDIO_USER":
+                                            handler.audioUserSockets.put(clientSocket);
+                                            break;
+                                        case "AUDIO_SERVER":
+                                            handler.audioServerSockets.put(clientSocket);
+                                            break;
+                                        case "RECEIVE_FILE":
+                                            handler.receiveFileSockets.put(clientSocket);
+                                            break;
+                                        default:
+                                            clientSocket.close();
+                                    }
+                                } else {
+                                    clientSocket.close();
+                                }
+                            } else {
+                                clientSocket.close();
+                            }
+                        } catch (Exception exception) {
+                            try {
+                                clientSocket.close();
+                            } catch (Exception ex) {
+                            }
+                        }
+                    }).start();
                 }
             } catch (Exception exception) {
                 msg("Ocorreu um erro ao receber uma conexão! (" + exception.getMessage() + ")");

