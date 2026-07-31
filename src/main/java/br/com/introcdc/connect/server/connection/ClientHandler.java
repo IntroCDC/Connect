@@ -467,7 +467,7 @@ public class ClientHandler implements Runnable {
                             ConnectServer.msg(getClientInfo() + ": Ocorreu um erro ao receber um arquivo do cliente");
                         }
                     }).start()), 100, TimeUnit.MILLISECONDS);
-                } else {
+                } else if (!command.isEmpty()) {
                     ConnectServer.msg(getClientInfo() + ": " + command);
                     if (command.contains("Interfaces USB:") || command.contains("Separador de Linha:")) {
                         ConnectServer.msg(getClientInfo() + ": IP: " + getClientIP() + " (" + this.location + ")");
