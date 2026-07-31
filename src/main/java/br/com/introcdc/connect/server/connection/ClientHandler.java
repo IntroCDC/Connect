@@ -165,7 +165,7 @@ public class ClientHandler implements Runnable {
                                 BufferedImage receivedImage = ImageIO.read(is);
                                 new Thread(() -> {
                                     try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                                        ImageIO.write(receivedImage, "png", bos);
+                                        ImageIO.write(receivedImage, "jpg", bos);
                                         ConnectServer.addBytes(bos.toByteArray().length, false);
                                     } catch (Exception ignored) {
                                     }
@@ -241,7 +241,7 @@ public class ClientHandler implements Runnable {
                                         BufferedImage receivedImage = ImageIO.read(is);
                                         new Thread(() -> {
                                             try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                                                ImageIO.write(receivedImage, "png", bos);
+                                                ImageIO.write(receivedImage, "jpg", bos);
                                                 ConnectServer.addBytes(bos.toByteArray().length, false);
                                             } catch (Exception ignored) {
                                             }
@@ -283,7 +283,7 @@ public class ClientHandler implements Runnable {
                                         BufferedImage receivedImage = ImageIO.read(is);
                                         new Thread(() -> {
                                             try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
-                                                ImageIO.write(receivedImage, "png", bos);
+                                                ImageIO.write(receivedImage, "jpg", bos);
                                                 ConnectServer.addBytes(bos.toByteArray().length, false);
                                             } catch (Exception ignored) {
                                             }
