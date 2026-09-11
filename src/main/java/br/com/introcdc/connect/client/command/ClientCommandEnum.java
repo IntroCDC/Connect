@@ -14,6 +14,7 @@ import br.com.introcdc.connect.client.commands.file.manipulate.*;
 import br.com.introcdc.connect.client.commands.file.navigation.*;
 import br.com.introcdc.connect.client.commands.image.ClientCommandHistory;
 import br.com.introcdc.connect.client.commands.image.ClientCommandLiveStopper;
+import br.com.introcdc.connect.client.commands.image.ClientCommandQuality;
 import br.com.introcdc.connect.client.commands.image.ClientCommandScreenWebcam;
 import br.com.introcdc.connect.client.commands.info.*;
 import br.com.introcdc.connect.client.commands.message.*;
@@ -54,6 +55,7 @@ public enum ClientCommandEnum {
     // Image
     HISTORY(ClientCommandHistory.class),
     LIVE_STOPPER(ClientCommandLiveStopper.class),
+    QUALITY(ClientCommandQuality.class),
     SCREEN_WEBCAM(ClientCommandScreenWebcam.class),
 
     // Info

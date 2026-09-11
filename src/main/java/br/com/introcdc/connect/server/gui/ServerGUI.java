@@ -90,6 +90,7 @@ public class ServerGUI extends JFrame {
     private final JButton folderButton;
     private final JButton clearButton;
     private final JButton matrixButton;
+    private final JButton qualityButton;
 
     // ===== Métricas de rede =====
     private double download = 0;
@@ -183,7 +184,7 @@ public class ServerGUI extends JFrame {
         folderButton = createButton("Arquivos");
         clearButton = createButton("Limpar");
         matrixButton = createButton("Matrix");
-
+        qualityButton = createButton("Qualidade (JPG)");
 
         JPanel commandPanel = new CardPanel("Controle de Comandos");
         commandPanel.setLayout(new GridBagLayout());
@@ -217,6 +218,7 @@ public class ServerGUI extends JFrame {
         commandButtons.add(folderButton);
         commandButtons.add(clearButton);
         commandButtons.add(matrixButton);
+        commandButtons.add(qualityButton);
 
         gc.gridx = 0;
         gc.gridy = 1;
@@ -392,6 +394,11 @@ public class ServerGUI extends JFrame {
             JOptionPane.showMessageDialog(this,
                     on ? "Efeito Matrix ligado!" : "Efeito Matrix desligado!",
                     "Matrix", JOptionPane.INFORMATION_MESSAGE);
+        });
+        qualityButton.addActionListener(event -> {
+            boolean isPng = qualityButton.getText().contains("PNG");
+            qualityButton.setText(isPng ? "Qualidade (JPG)" : "Qualidade (PNG)");
+            ConnectServer.handleCommand("quality");
         });
 
         clientCombo.addItemListener(e -> {

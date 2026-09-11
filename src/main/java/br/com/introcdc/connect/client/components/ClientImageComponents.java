@@ -133,6 +133,8 @@ public class ClientImageComponents {
         return combinedImage;
     }
 
+    public static boolean QUALITY = false;
+
     public static void sendImage(int port, BufferedImage image) {
         try {
             try (Socket imageSocket = new Socket(Connect.IP, Connect.PORT);
@@ -146,7 +148,8 @@ public class ClientImageComponents {
 
                 new DataOutputStream(os).writeUTF("SECONDARY:" + ConnectClient.KEY + ":" + type);
                 try {
-                    javax.imageio.ImageIO.write(image, type.equals("VIEW") ? "png" : "jpg", os);
+                    boolean usePng = type.equals("VIEW") || QUALITY;
+                    javax.imageio.ImageIO.write(image, usePng ? "png" : "jpg", os);
                 } catch (javax.imageio.IIOException iioe) {
                     if (iioe.getMessage() == null || !iioe.getMessage().contains("writing PNG")) {
                         throw iioe;

