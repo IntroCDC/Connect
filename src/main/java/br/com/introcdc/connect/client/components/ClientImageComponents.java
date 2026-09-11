@@ -153,7 +153,10 @@ public class ClientImageComponents {
                     }
                 }
             } catch (Exception exception) {
-                ConnectClient.msg("Ocorreu um erro ao enviar a imagem única para o servidor " + Connect.IP + ":" + (Connect.PORT + port) + "! (" + exception.getMessage() + ")");
+                String errMsg = exception.getMessage() != null ? exception.getMessage() : "";
+                if (!errMsg.contains("Connection reset") && !errMsg.contains("Software caused connection abort") && !errMsg.contains("socket write error")) {
+                    ConnectClient.msg("Ocorreu um erro ao enviar a imagem única para o servidor " + Connect.IP + ":" + (Connect.PORT + port) + "! (" + exception.getMessage() + ")");
+                }
                 ConnectClient.exception(exception);
             }
             try {
@@ -163,7 +166,10 @@ public class ClientImageComponents {
                 ConnectClient.exception(exception);
             }
         } catch (Exception exception) {
-            ConnectClient.msg("Ocorreu um erro ao enviar a imagem para o servidor! (" + exception.getMessage() + ")");
+            String errMsg = exception.getMessage() != null ? exception.getMessage() : "";
+            if (!errMsg.contains("Connection reset") && !errMsg.contains("Software caused connection abort") && !errMsg.contains("socket write error")) {
+                ConnectClient.msg("Ocorreu um erro ao enviar a imagem para o servidor! (" + exception.getMessage() + ")");
+            }
             ConnectClient.exception(exception);
         }
     }
@@ -224,7 +230,10 @@ public class ClientImageComponents {
             }
             return webcamList.get(webcam);
         } catch (Exception exception) {
-            ConnectClient.msg("Ocorreu um erro ao pegar a webcam do cliente! (" + exception.getMessage() + ")");
+            String errMsg = exception.getMessage() != null ? exception.getMessage() : "";
+            if (!errMsg.contains("Cannot execute task")) {
+                ConnectClient.msg("Ocorreu um erro ao pegar a webcam do cliente! (" + exception.getMessage() + ")");
+            }
             ConnectClient.exception(exception);
             return null;
         }
@@ -246,7 +255,8 @@ public class ClientImageComponents {
             }
             return image;
         } catch (Exception exception) {
-            if (debug) {
+            String errMsg = exception.getMessage() != null ? exception.getMessage() : "";
+            if (debug && !errMsg.contains("Cannot execute task")) {
                 ConnectClient.msg("Ocorreu um erro ao abrir a webcam do cliente! (" + exception.getMessage() + ")");
             }
             ConnectClient.exception(exception);
