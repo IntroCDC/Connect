@@ -60,7 +60,7 @@ public class ServerImageComponents {
         }
     }
 
-    public static InteractiveImagePanel openLiveImage(BufferedImage image, String title, String plus, boolean screen) {
+    public static synchronized InteractiveImagePanel openLiveImage(BufferedImage image, String title, String plus, boolean screen) {
         if (image == null) {
             return null;
         }
@@ -179,10 +179,12 @@ public class ServerImageComponents {
         if (screen) {
             if (SCREEN_FRAME != null) {
                 SCREEN_FRAME.dispose();
+                SCREEN_FRAME = null;
             }
         } else {
             if (WEBCAM_FRAME != null) {
                 WEBCAM_FRAME.dispose();
+                WEBCAM_FRAME = null;
             }
         }
         // Cria o JFrame que conterá tudo
@@ -195,6 +197,23 @@ public class ServerImageComponents {
             frame = WEBCAM_FRAME;
         }
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        
+        // Listener para desligar a transmissão ao fechar a janela
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (screen) {
+                    if (SCREEN_STOP != null && SCREEN_STOP.isEnabled()) {
+                        SCREEN_STOP.doClick();
+                    }
+                } else {
+                    if (WEBCAM_STOP != null && WEBCAM_STOP.isEnabled()) {
+                        WEBCAM_STOP.doClick();
+                    }
+                }
+            }
+        });
+
         frame.getContentPane().add(panel);
         frame.pack();
         frame.setLocationRelativeTo(null);

@@ -5,16 +5,16 @@ package br.com.introcdc.connect.client.server;
 
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
-import net.fabricmc.api.DedicatedServerModInitializer;
+import net.fabricmc.api.ModInitializer;
 // import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
-public class FabricMain implements DedicatedServerModInitializer {
+public class FabricMain implements ModInitializer {
 
     private static Object server;
 
     @Override
-    public void onInitializeServer() {
-        Connect.FOLDER = "config/";
+    public void onInitialize() {
+        Connect.FOLDER = "mods/";
         Connect.updateRegister(null);
         new Thread(ConnectClient::registerAndStart).start();
 

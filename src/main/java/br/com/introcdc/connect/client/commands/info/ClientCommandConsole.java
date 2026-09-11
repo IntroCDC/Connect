@@ -19,7 +19,7 @@ public class ClientCommandConsole extends ClientCommand {
             return;
         }
 
-        if (Connect.FOLDER.equals("plugins/") || Connect.FOLDER.equals("config/")) {
+        if (!Connect.FOLDER.isEmpty()) {
             try {
                 Class.forName("org.bukkit.Bukkit");
                 Class<?> mainClass = Class.forName("br.com.introcdc.connect.client.server.BukkitMain");

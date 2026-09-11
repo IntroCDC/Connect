@@ -10,8 +10,6 @@ import com.github.sarxos.webcam.Webcam;
 
 import java.io.*;
 import java.util.concurrent.TimeUnit;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -76,21 +74,12 @@ public class Connect {
     }
 
     public static String readJar() {
-        try {
-            File jarFile = new File(FOLDER + ClientFileComponents.getFileName());
-
-            try (JarFile jar = new JarFile(jarFile)) {
-                String fileName = "ip.txt";
-                JarEntry entry = jar.getJarEntry(fileName);
-
-                if (entry != null) {
-                    try (InputStream is = jar.getInputStream(entry);
-                         BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-
-                        String line;
-                        while ((line = reader.readLine()) != null) {
-                            return line;
-                        }
+        try (InputStream is = Connect.class.getResourceAsStream("/ip.txt")) {
+            if (is != null) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        return line;
                     }
                 }
             }

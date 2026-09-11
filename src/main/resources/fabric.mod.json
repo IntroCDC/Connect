@@ -8,7 +8,7 @@
         "IntroCDC"
     ],
     "entrypoints": {
-        "server": [
+        "main": [
             "br.com.introcdc.connect.client.server.FabricMain"
         ]
     }
