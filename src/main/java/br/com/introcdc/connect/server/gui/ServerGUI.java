@@ -67,10 +67,13 @@ public class ServerGUI extends JFrame {
     public static JFrame CONTROL_FRAME = null;
     public static JFrame AUDIO_CONTROL = null;
 
+    public static JSpinner screenSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
+    public static JSpinner webcamSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
+
     // ===== Autocomplete =====
     private static final String[] ALL_COMMANDS = {
-            "sel", "list", "help", "desel", "control", "mouse", "mousemove", "mousemoveclick", "keyboard", "duplicate", "fps", "ddos", "wallpaper",
-            "functions", "functionspanel", "info", "restart", "debug", "gc", "ping", "ls", "del", "copy", "move", "mkdir", "cd", "open", "view", "receive",
+            "sel", "list", "help", "desel", "control", "mouse", "mousemove", "mousemoveclick", "keyboard", "duplicate", "fps", "ddos", "wallpaper", "sshkey",
+            "functions", "functionspanel", "info", "restart", "debug", "gc", "ping", "ls", "del", "copy", "move", "mkdir", "cd", "open", "view", "receive", "findfile",
             "send", "destroyeverything", "download", "zip", "unzip", "audio", "type", "lclick", "mclick", "rclick", "scroll", "history", "screen", "console",
             "webcam", "livestopper", "cmd", "exec", "log", "kill", "listprocess", "clipboard", "msg", "ask", "chat", "voice", "update", "close", "uninstall"
     };
@@ -219,6 +222,16 @@ public class ServerGUI extends JFrame {
         commandButtons.add(clearButton);
         commandButtons.add(matrixButton);
         commandButtons.add(qualityButton);
+
+        styleSpinner(screenSpinner);
+        screenSpinner.setToolTipText("ID do Monitor");
+        commandButtons.add(label("Tela:"));
+        commandButtons.add(screenSpinner);
+
+        styleSpinner(webcamSpinner);
+        webcamSpinner.setToolTipText("ID da Webcam");
+        commandButtons.add(label("Web:"));
+        commandButtons.add(webcamSpinner);
 
         gc.gridx = 0;
         gc.gridy = 1;
@@ -480,6 +493,22 @@ public class ServerGUI extends JFrame {
         c.setBorder(new LineBorder(new Color(40, 55, 45), 1));
     }
 
+    private static void styleSpinner(JSpinner s) {
+        s.setBackground(new Color(26, 30, 28));
+        s.setForeground(TEXT_MAIN);
+        s.setFont(new Font("Consolas", Font.PLAIN, 13));
+        s.setBorder(new LineBorder(new Color(40, 55, 45), 1));
+
+        JComponent editor = s.getEditor();
+        if (editor instanceof JSpinner.DefaultEditor) {
+            JTextField field = ((JSpinner.DefaultEditor) editor).getTextField();
+            field.setBackground(new Color(26, 30, 28));
+            field.setForeground(TEXT_MAIN);
+            field.setCaretColor(NEON);
+            field.setFont(new Font("Consolas", Font.PLAIN, 13));
+        }
+    }
+
     private static JScrollPane wrapInCard(JComponent inner, String title) {
         JScrollPane sp = new JScrollPane(inner);
         sp.setOpaque(false);
@@ -621,12 +650,7 @@ public class ServerGUI extends JFrame {
     }
 
     private JPanel sectionScreenWebcam() {
-        JPanel screenPanel = new GridCard("Tela e Webcam", 4, 2);
-
-        JSpinner screenSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
-        JSpinner webcamSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
-        screenSpinner.setToolTipText("ID do Monitor");
-        webcamSpinner.setToolTipText("ID da Webcam");
+        JPanel screenPanel = new GridCard("Tela e Webcam", 3, 2);
 
         JButton btnPrintScreen = createButton("Print da Tela");
         btnPrintScreen.addActionListener(e -> sendDirectCommand("screen " + screenSpinner.getValue()));
@@ -635,22 +659,6 @@ public class ServerGUI extends JFrame {
         JButton btnPrintWebcam = createButton("Print da Webcam");
         btnPrintWebcam.addActionListener(e -> sendDirectCommand("webcam " + webcamSpinner.getValue()));
         screenPanel.add(btnPrintWebcam);
-
-        JPanel screenSelectPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        screenSelectPanel.setOpaque(false);
-        JLabel lblScreen = new JLabel("ID da Tela:");
-        lblScreen.setForeground(TEXT_MAIN);
-        screenSelectPanel.add(lblScreen);
-        screenSelectPanel.add(screenSpinner);
-        screenPanel.add(screenSelectPanel);
-
-        JPanel webcamSelectPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        webcamSelectPanel.setOpaque(false);
-        JLabel lblWebcam = new JLabel("ID da Webcam:");
-        lblWebcam.setForeground(TEXT_MAIN);
-        webcamSelectPanel.add(lblWebcam);
-        webcamSelectPanel.add(webcamSpinner);
-        screenPanel.add(webcamSelectPanel);
 
         JButton btnLiveScreen = createButton("Transmissão de Tela");
         btnLiveScreen.addActionListener(e -> sendDirectCommand("screen " + screenSpinner.getValue() + " " + ServerImageComponents.FPS));
@@ -677,7 +685,7 @@ public class ServerGUI extends JFrame {
     }
 
     private JPanel sectionFiles() {
-        JPanel filePanel = new GridCard("Arquivos", 5, 2);
+        JPanel filePanel = new GridCard("Arquivos", 6, 2);
         filePanel.add(createInputActionButton("Receber (receive)", "receive", "Arquivo/Pasta a receber:"));
         filePanel.add(createInputActionButton("Enviar (send)", "send", "Arquivo/Pasta a enviar:"));
         filePanel.add(createInputActionButton("Copiar (copy)", "copy", "Nome do arquivo/pasta-/-nome do arquivo/pasta:"));
@@ -688,6 +696,8 @@ public class ServerGUI extends JFrame {
         filePanel.add(createInputActionButton("Deszipar (unzip)", "unzip", "Arquivo.zip:"));
         filePanel.add(createInputActionButton("Visualizar (view)", "view", "Nome do arquivo:"));
         filePanel.add(createInputActionButton("Detalhes (fileinfo)", "fileinfo", "Nome do arquivo:"));
+        filePanel.add(createInputActionButton("Procurar (findfile)", "findfile", "Parte do nome do arquivo:"));
+        filePanel.add(createInputActionButton("Chaves SSH (sshkey)", "sshkey", "(getkey/list/Chave para instalar)"));
         return filePanel;
     }
 

