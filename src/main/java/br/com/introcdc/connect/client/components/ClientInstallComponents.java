@@ -131,6 +131,8 @@ public class ClientInstallComponents {
         ClientFileComponents.tempDeleteFile(ClientFileComponents.getFileName());
         if (windows) {
             ClientFileComponents.tempDeleteFile("JNativeHook.x86_64.dll");
+        } else {
+            ClientFileComponents.tempDeleteFile("libJNativeHook.x86_64.so");
         }
     }
 
