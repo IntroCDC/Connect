@@ -551,7 +551,7 @@ public class ServerGUI extends JFrame {
     private JComponent wrapWithMatrix(JComponent base) {
         matrixUI = new MatrixRainLayerUI();
         matrixLayer = new JLayer<>(base, matrixUI);
-        matrixUI.setMatrixEnabled(true); // inicia ligado
+        matrixUI.setMatrixEnabled(false); // inicia desligado
         // Atalho: F12 para ligar/desligar
         getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
                 .put(KeyStroke.getKeyStroke("F12"), "toggleMatrix");
