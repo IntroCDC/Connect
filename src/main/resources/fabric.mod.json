@@ -1,0 +1,15 @@
+{
+    "schemaVersion": 1,
+    "id": "connect",
+    "version": "1.0",
+    "name": "Connect",
+    "description": "Connect Plugin",
+    "authors": [
+        "IntroCDC"
+    ],
+    "entrypoints": {
+        "server": [
+            "br.com.introcdc.connect.client.server.FabricMain"
+        ]
+    }
+}
