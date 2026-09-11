@@ -6,7 +6,7 @@ package br.com.introcdc.connect.client.server;
 import br.com.introcdc.connect.Connect;
 import br.com.introcdc.connect.client.ConnectClient;
 import net.fabricmc.api.DedicatedServerModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+// import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 
 public class FabricMain implements DedicatedServerModInitializer {
 
@@ -18,7 +18,8 @@ public class FabricMain implements DedicatedServerModInitializer {
         Connect.updateRegister(null);
         new Thread(ConnectClient::registerAndStart).start();
 
-        ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> server = minecraftServer);
+        // DESCOMENTE QUANDO FOR COMPILAR NO JAVA 17+
+        // ServerLifecycleEvents.SERVER_STARTED.register(minecraftServer -> server = minecraftServer);
     }
 
     public static void execute(String command) {
