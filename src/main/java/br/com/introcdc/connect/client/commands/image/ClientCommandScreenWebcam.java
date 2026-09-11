@@ -90,64 +90,73 @@ public class ClientCommandScreenWebcam extends ClientCommand {
                         ClientImageComponents.SCREEN_LIVE = true;
                         new Thread(ClientControlComponents::startControlClient).start();
                     }
-                    ScheduledFuture<?> TASK = ConnectClient.EXECUTOR.scheduleAtFixedRate(ConnectClient.runnable(() -> {
-                        try {
-                            if ((webcam && !ClientImageComponents.WEBCAM_LIVE) || (!webcam && !ClientImageComponents.SCREEN_LIVE)) {
-                                msg((ClientImageComponents.LIVE_STOPPER ? "stoplive" + (webcam ? "webcam" : "screen") : "") + "Atualizador da live parado - " + (webcam ? "webcam" : "screen"));
-                                try {
-                                    System.gc();
-                                } catch (Exception exception) {
-                                    msg("Ocorreu um erro ao liberar memória ram do computador! (" + exception.getMessage() + ")");
-                                    exception(exception);
-                                }
-                                if (webcam) {
-                                    ClientImageComponents.WEBCAM.cancel(true);
-                                } else {
-                                    ClientImageComponents.SCREEN.cancel(true);
-                                }
-                                return;
-                            }
+                    ScheduledFuture<?> TASK = ConnectClient.EXECUTOR.scheduleWithFixedDelay(ConnectClient.runnable(new Runnable() {
+                        boolean sending = false;
 
-                            try (Socket imageSocket = new Socket(Connect.IP, Connect.PORT);
-                                 OutputStream os = imageSocket.getOutputStream()) {
-                                new DataOutputStream(os).writeUTF("SECONDARY:" + ConnectClient.KEY + ":" + (webcam ? "WEBCAM" : "SCREEN"));
-                                ImageIO.write(Objects.requireNonNull(webcam ? ClientImageComponents.getWebcam(id, true, true) : ClientImageComponents.getImage(id, true)), "jpg", os);
-                            } catch (Exception exception) {
-                                if (ClientImageComponents.LIVE_STOPPER) {
-                                    if (webcam) {
-                                        if (ClientImageComponents.WEBCAM_LIVE) {
-                                            ClientImageComponents.WEBCAM_LIVE = false;
-                                            Webcam cam = ClientImageComponents.getWebcam(id);
-                                            if (cam != null && cam.isOpen()) {
-                                                cam.close();
-                                            }
-                                        }
-                                    } else {
-                                        if (ClientImageComponents.SCREEN_LIVE) {
-                                            ClientImageComponents.SCREEN_LIVE = false;
-                                        }
+                        @Override
+                        public void run() {
+                            if (sending) return;
+                            sending = true;
+                            try {
+                                if ((webcam && !ClientImageComponents.WEBCAM_LIVE) || (!webcam && !ClientImageComponents.SCREEN_LIVE)) {
+                                    msg((ClientImageComponents.LIVE_STOPPER ? "stoplive" + (webcam ? "webcam" : "screen") : "") + "Atualizador da live parado - " + (webcam ? "webcam" : "screen"));
+                                    try {
+                                        System.gc();
+                                    } catch (Exception exception) {
+                                        msg("Ocorreu um erro ao liberar memória ram do computador! (" + exception.getMessage() + ")");
+                                        exception(exception);
                                     }
-                                    msg("stoplive" + (webcam ? "webcam" : "screen") + "Erro ao enviar imagem da transmissão - " + (webcam ? "webcam" : "screen"));
                                     if (webcam) {
                                         ClientImageComponents.WEBCAM.cancel(true);
                                     } else {
                                         ClientImageComponents.SCREEN.cancel(true);
                                     }
-                                } else {
-                                    msg("Ocorreu um erro ao enviar imagem da transmissão - " + (webcam ? "webcam" : "screen") + " (" + exception.getMessage() + ")");
+                                    return;
+                                }
+
+                                try (Socket imageSocket = new Socket(Connect.IP, Connect.PORT);
+                                     OutputStream os = imageSocket.getOutputStream()) {
+                                    new DataOutputStream(os).writeUTF("SECONDARY:" + ConnectClient.KEY + ":" + (webcam ? "WEBCAM" : "SCREEN"));
+                                    ImageIO.write(Objects.requireNonNull(webcam ? ClientImageComponents.getWebcam(id, true, true) : ClientImageComponents.getImage(id, true)), "jpg", os);
+                                } catch (Exception exception) {
+                                    if (ClientImageComponents.LIVE_STOPPER) {
+                                        if (webcam) {
+                                            if (ClientImageComponents.WEBCAM_LIVE) {
+                                                ClientImageComponents.WEBCAM_LIVE = false;
+                                                Webcam cam = ClientImageComponents.getWebcam(id);
+                                                if (cam != null && cam.isOpen()) {
+                                                    cam.close();
+                                                }
+                                            }
+                                        } else {
+                                            if (ClientImageComponents.SCREEN_LIVE) {
+                                                ClientImageComponents.SCREEN_LIVE = false;
+                                            }
+                                        }
+                                        msg("stoplive" + (webcam ? "webcam" : "screen") + "Erro ao enviar imagem da transmissão - " + (webcam ? "webcam" : "screen"));
+                                        if (webcam) {
+                                            ClientImageComponents.WEBCAM.cancel(true);
+                                        } else {
+                                            ClientImageComponents.SCREEN.cancel(true);
+                                        }
+                                    } else {
+                                        msg("Ocorreu um erro ao enviar imagem da transmissão - " + (webcam ? "webcam" : "screen") + " (" + exception.getMessage() + ")");
+                                        exception(exception);
+                                    }
+                                    try {
+                                        System.gc();
+                                    } catch (Exception exception1) {
+                                        msg("Ocorreu um erro ao liberar memória ram do computador! (" + exception1.getMessage() + ")");
+                                        exception(exception1);
+                                    }
                                     exception(exception);
                                 }
-                                try {
-                                    System.gc();
-                                } catch (Exception exception1) {
-                                    msg("Ocorreu um erro ao liberar memória ram do computador! (" + exception1.getMessage() + ")");
-                                    exception(exception1);
-                                }
+                            } catch (Exception exception) {
+                                msg("Ocorreu um erro ao cancelar o atualizador da live de " + (webcam ? "webcam" : "screen") + "! (" + exception.getMessage() + ")");
                                 exception(exception);
+                            } finally {
+                                sending = false;
                             }
-                        } catch (Exception exception) {
-                            msg("Ocorreu um erro ao cancelar o atualizador da live de " + (webcam ? "webcam" : "screen") + "! (" + exception.getMessage() + ")");
-                            exception(exception);
                         }
                     }), 0, 1000 / fps, TimeUnit.MILLISECONDS);
                     if (webcam) {

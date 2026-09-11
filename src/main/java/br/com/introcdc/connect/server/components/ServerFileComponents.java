@@ -489,7 +489,6 @@ public class ServerFileComponents {
     }
 
     public static void createZip(Map<String, String> files, File destiny) throws IOException {
-        System.out.println(destiny.getAbsolutePath());
         if (!destiny.exists()) {
             destiny.createNewFile();
         }

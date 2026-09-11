@@ -10,7 +10,6 @@ import br.com.introcdc.connect.server.gui.ServerGUI;
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.SourceDataLine;
-import java.awt.*;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
@@ -92,18 +91,20 @@ public class ServerAudioComponents {
                     if (ServerGUI.AUDIO_USER != null) {
                         if (ServerAudioComponents.AUDIO_USER) {
                             ServerAudioComponents.AUDIO_USER = false;
-                            ServerGUI.AUDIO_USER.setBackground(Color.RED);
+                            ServerGUI.toggleColor(ServerGUI.AUDIO_USER, false);
                         } else {
-                            ServerGUI.AUDIO_USER.setBackground(Color.YELLOW);
+                            ServerGUI.AUDIO_USER.putClientProperty("TOGGLE_STATE", "LOADING");
+                            ServerGUI.AUDIO_USER.repaint();
                         }
                     }
                 } else if (input.equalsIgnoreCase("send")) {
                     if (ServerGUI.AUDIO_SERVER != null) {
                         if (ServerAudioComponents.AUDIO_SERVER) {
                             ServerAudioComponents.AUDIO_SERVER = false;
-                            ServerGUI.AUDIO_SERVER.setBackground(Color.RED);
+                            ServerGUI.toggleColor(ServerGUI.AUDIO_SERVER, false);
                         } else {
-                            ServerGUI.AUDIO_SERVER.setBackground(Color.YELLOW);
+                            ServerGUI.AUDIO_SERVER.putClientProperty("TOGGLE_STATE", "LOADING");
+                            ServerGUI.AUDIO_SERVER.repaint();
                         }
                     }
                 }

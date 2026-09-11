@@ -11,8 +11,6 @@ import com.google.gson.JsonParser;
 
 import javax.swing.*;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.io.*;
 import java.net.Socket;
 import java.net.URL;
@@ -55,53 +53,41 @@ public class ServerControlComponents {
         }
     }
 
-    public static void sendMouseMove(MouseEvent mouseEvent) {
+    public static void sendMouseMove(int x, int y) {
         RemoteEvent event = new RemoteEvent();
         event.setType(RemoteEvent.Type.MOUSE_MOVE);
-        event.setX(mouseEvent.getX());
-        event.setY(mouseEvent.getY());
+        event.setX(x);
+        event.setY(y);
         sendEvent(event);
     }
 
-    public static void sendMouseWheel(MouseWheelEvent mouseEvent) {
+    public static void sendMouseWheel(int x, int y, int scrollAmount) {
         if (!MOUSE_MOVE && MOUSE_MOVE_CLICK) {
-            RemoteEvent event = new RemoteEvent();
-            event.setType(RemoteEvent.Type.MOUSE_MOVE);
-            event.setX(mouseEvent.getX());
-            event.setY(mouseEvent.getY());
-            sendEvent(event);
+            sendMouseMove(x, y);
         }
         RemoteEvent event = new RemoteEvent();
         event.setType(RemoteEvent.Type.MOUSE_WHEEL);
-        event.setWheelAmount(mouseEvent.getScrollAmount());
+        event.setWheelAmount(scrollAmount);
         sendEvent(event);
     }
 
-    public static void sendMousePress(MouseEvent mouseEvent) {
+    public static void sendMousePress(int x, int y, int button) {
         if (!MOUSE_MOVE && MOUSE_MOVE_CLICK) {
-            RemoteEvent event = new RemoteEvent();
-            event.setType(RemoteEvent.Type.MOUSE_MOVE);
-            event.setX(mouseEvent.getX());
-            event.setY(mouseEvent.getY());
-            sendEvent(event);
+            sendMouseMove(x, y);
         }
         RemoteEvent event = new RemoteEvent();
         event.setType(RemoteEvent.Type.MOUSE_PRESS);
-        event.setButton(mouseEvent.getButton());
+        event.setButton(button);
         sendEvent(event);
     }
 
-    public static void sendMouseRelease(MouseEvent mouseEvent) {
+    public static void sendMouseRelease(int x, int y, int button) {
         if (!MOUSE_MOVE && MOUSE_MOVE_CLICK) {
-            RemoteEvent event = new RemoteEvent();
-            event.setType(RemoteEvent.Type.MOUSE_MOVE);
-            event.setX(mouseEvent.getX());
-            event.setY(mouseEvent.getY());
-            sendEvent(event);
+            sendMouseMove(x, y);
         }
         RemoteEvent event = new RemoteEvent();
         event.setType(RemoteEvent.Type.MOUSE_RELEASE);
-        event.setButton(mouseEvent.getButton());
+        event.setButton(button);
         sendEvent(event);
     }
 

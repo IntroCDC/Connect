@@ -168,6 +168,9 @@ public class ClientImageComponents {
         }
     }
 
+    public static int CURRENT_SCREEN_X = 0;
+    public static int CURRENT_SCREEN_Y = 0;
+
     public static BufferedImage getImage(int monitor, boolean debug) {
         try {
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -177,29 +180,30 @@ public class ClientImageComponents {
                 return null;
             }
             GraphicsDevice secondScreen = screens[monitor];
-            DisplayMode dm = secondScreen.getDisplayMode();
-            int screenWidth = dm.getWidth();
-            int screenHeight = dm.getHeight();
 
             Rectangle screenBounds = secondScreen.getDefaultConfiguration().getBounds();
-            BufferedImage screenshot = ClientControlComponents.ROBOT_INSTANCE.createScreenCapture(new Rectangle(screenBounds.x, screenBounds.y, screenWidth, screenHeight));
+            CURRENT_SCREEN_X = screenBounds.x;
+            CURRENT_SCREEN_Y = screenBounds.y;
+            BufferedImage screenshot = ClientControlComponents.ROBOT_INSTANCE.createScreenCapture(new Rectangle(screenBounds.x, screenBounds.y, screenBounds.width, screenBounds.height));
 
             Point mouseLocation = MouseInfo.getPointerInfo().getLocation();
 
             Graphics2D graphics = screenshot.createGraphics();
             graphics.setColor(Color.RED);
             int cursorSize = 10;
+            int drawX = (int) mouseLocation.getX() - screenBounds.x;
+            int drawY = (int) mouseLocation.getY() - screenBounds.y;
             graphics.drawLine(
-                    (int) mouseLocation.getX() - cursorSize,
-                    (int) mouseLocation.getY(),
-                    (int) mouseLocation.getX() + cursorSize,
-                    (int) mouseLocation.getY()
+                    drawX - cursorSize,
+                    drawY,
+                    drawX + cursorSize,
+                    drawY
             );
             graphics.drawLine(
-                    (int) mouseLocation.getX(),
-                    (int) mouseLocation.getY() - cursorSize,
-                    (int) mouseLocation.getX(),
-                    (int) mouseLocation.getY() + cursorSize
+                    drawX,
+                    drawY - cursorSize,
+                    drawX,
+                    drawY + cursorSize
             );
             graphics.dispose();
             return screenshot;

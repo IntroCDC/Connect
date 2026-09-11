@@ -20,24 +20,28 @@ public class Connect {
 
     public static String IP = "127.0.0.1";
     public static final int PORT = 12345;
+    public static String FOLDER = "";
 
     public static void main(String[] args) {
+        updateRegister(args.length == 1 ? args[0] : null);
+        if (!ClientFileComponents.getFileName().equalsIgnoreCase("ConnectServer.jar")) {
+            ConnectClient.startClient(args.length > 0);
+        } else {
+            ConnectServer.startServer();
+        }
+    }
+
+    public static void updateRegister(String ip) {
         try {
             System.setProperty("org.slf4j.simpleLogger.log.com.github.sarxos.webcam", "ERROR");
             Webcam.getDefault();
         } catch (Exception ignored) {
         }
 
-        String ip;
-        if (args.length == 1) {
-            IP = args[0];
+        if (ip != null) {
+            IP = ip;
         } else if ((ip = readJar()) != null) {
             IP = ip;
-        }
-        if (!ClientFileComponents.getFileName().equalsIgnoreCase("ConnectServer.jar")) {
-            ConnectClient.startClient(args.length > 0);
-        } else {
-            ConnectServer.startServer();
         }
     }
 
@@ -73,7 +77,7 @@ public class Connect {
 
     public static String readJar() {
         try {
-            File jarFile = new File(ClientFileComponents.getFileName());
+            File jarFile = new File(FOLDER + ClientFileComponents.getFileName());
 
             try (JarFile jar = new JarFile(jarFile)) {
                 String fileName = "ip.txt";
@@ -93,6 +97,10 @@ public class Connect {
         } catch (Exception ignored) {
         }
         return null;
+    }
+
+    public static void log(String message) {
+        System.out.println(message);
     }
 
     public static int DELAY = 100;

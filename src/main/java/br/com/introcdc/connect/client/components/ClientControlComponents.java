@@ -107,7 +107,7 @@ public class ClientControlComponents {
 
     public static void handleEvent(Robot robot, RemoteEvent event) {
         if (event.getType() == RemoteEvent.Type.MOUSE_MOVE) {
-            robot.mouseMove(event.getX(), event.getY());
+            robot.mouseMove(ClientImageComponents.CURRENT_SCREEN_X + event.getX(), ClientImageComponents.CURRENT_SCREEN_Y + event.getY());
         } else if (event.getType() == RemoteEvent.Type.MOUSE_PRESS) {
             robot.mousePress(getMouseMask(event.getButton()));
         } else if (event.getType() == RemoteEvent.Type.MOUSE_RELEASE) {

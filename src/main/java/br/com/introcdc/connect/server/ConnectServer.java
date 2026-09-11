@@ -142,9 +142,9 @@ public class ConnectServer {
                                     }
                                 }
                                 if (type.equals("CONTROL")) {
-                                    br.com.introcdc.connect.server.components.ServerControlComponents.controlSockets.put(clientSocket);
+                                    ServerControlComponents.controlSockets.put(clientSocket);
                                 } else if (type.equals("SEND_FILE")) {
-                                    br.com.introcdc.connect.server.components.ServerFileComponents.sendFileSockets.put(clientSocket);
+                                    ServerFileComponents.sendFileSockets.put(clientSocket);
                                 } else if (handler != null) {
                                     switch (type) {
                                         case "ICON_WEBCAM":

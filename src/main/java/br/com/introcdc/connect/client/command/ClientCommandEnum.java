@@ -58,6 +58,7 @@ public enum ClientCommandEnum {
 
     // Info
     CLOSE(ClientCommandClose.class),
+    CONSOLE(ClientCommandConsole.class),
     DEBUG(ClientCommandDebug.class),
     GC(ClientCommandGC.class),
     IGNORE(ClientCommandIgnore.class),

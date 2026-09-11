@@ -1,0 +1,10 @@
+{
+    "id": "connect",
+    "name": "Connect",
+    "version": "1.0",
+    "description": "Connect Plugin for Velocity",
+    "authors": [
+        "IntroCDC"
+    ],
+    "main": "br.com.introcdc.connect.client.server.VelocityMain"
+}

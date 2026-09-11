@@ -4,6 +4,7 @@ package br.com.introcdc.connect.server.components;
  */
 
 import br.com.introcdc.connect.server.ConnectServer;
+import br.com.introcdc.connect.server.gui.InteractiveImagePanel;
 import br.com.introcdc.connect.server.gui.ServerGUI;
 
 import javax.imageio.ImageIO;
@@ -35,21 +36,14 @@ public class ServerImageComponents {
     private static volatile long lastWebcamSave = 0L;
 
     public static void openImage(BufferedImage image, String title) {
+        InteractiveImagePanel imagePanel = new InteractiveImagePanel(false);
+        imagePanel.setImage(image);
+
         Toolkit kit = Toolkit.getDefaultToolkit();
         Dimension screenSize = kit.getScreenSize();
 
-        int newHeight = screenSize.height;
-        int newWidth = (int) ((double) newHeight / image.getHeight() * image.getWidth());
-
-        Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-        ImageIcon imageIcon = new ImageIcon(scaledImage);
-
-        JLabel imageLabel = new JLabel(imageIcon);
-
-        JScrollPane scrollPane = new JScrollPane(imageLabel);
-
         JFrame frame = new JFrame(title + " (" + image.getWidth() + " x " + image.getHeight() + ")");
-        frame.add(scrollPane);
+        frame.add(imagePanel);
         frame.setSize(screenSize.width / 2, screenSize.height / 2);
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
@@ -66,31 +60,21 @@ public class ServerImageComponents {
         }
     }
 
-    public static JLabel openLiveImage(BufferedImage image, String title, String plus, boolean screen) {
+    public static InteractiveImagePanel openLiveImage(BufferedImage image, String title, String plus, boolean screen) {
         if (image == null) {
             return null;
         }
 
-        // Prepara tamanho da tela para redimensionar a imagem
         Toolkit kit = Toolkit.getDefaultToolkit();
         Dimension screenSize = kit.getScreenSize();
 
-        // Cálculo do tamanho da imagem redimensionada
-        int newHeight = screenSize.height;
-        int newWidth = (int) ((double) newHeight / image.getHeight() * image.getWidth());
-        Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-
-        // Cria um ImageIcon e o JLabel que exibirá a imagem
-        ImageIcon imageIcon = new ImageIcon(scaledImage);
-        JLabel label = new JLabel(imageIcon);
-
-        // Caso a imagem seja maior que a janela, usamos um JScrollPane
-        JScrollPane scrollPane = new JScrollPane(label);
+        InteractiveImagePanel label = new InteractiveImagePanel(screen);
+        label.setImage(image);
 
         // Painel principal com BorderLayout para podermos colocar botões no topo
         JPanel panel = new JPanel(new BorderLayout());
         panel.setPreferredSize(new Dimension(screenSize.width / 2, screenSize.height / 2));
-        panel.add(scrollPane, BorderLayout.CENTER);
+        panel.add(label, BorderLayout.CENTER);
 
         // ================== ADICIONA OS BOTÕES DE CONTROLE REMOTO CASO screen = true ==================
         // Painel para os botões na parte de cima
@@ -115,13 +99,8 @@ public class ServerImageComponents {
 
             // ---- Botão "Controle Remoto" ----
             ServerControlComponents.CONTROL_BUTTON = ServerGUI.createButton("Controle Remoto");
-            if (ServerControlComponents.CONTROL) {
-                ServerControlComponents.CONTROL_BUTTON.setBackground(Color.GREEN);
-            } else {
-                ServerControlComponents.CONTROL_BUTTON.setBackground(Color.RED);
-            }
+            ServerGUI.toggleColor(ServerControlComponents.CONTROL_BUTTON, ServerControlComponents.CONTROL);
             ServerControlComponents.CONTROL_BUTTON.setFocusable(false);
-            ServerControlComponents.CONTROL_BUTTON.setForeground(Color.WHITE);
 
             ServerControlComponents.CONTROL_BUTTON.addActionListener(e -> {
                 ConnectServer.handleCommand("control");
@@ -132,12 +111,7 @@ public class ServerImageComponents {
             // ---- Botão "Mover Mouse" ----
             ServerControlComponents.MOUSE_MOVE_BUTTON = ServerGUI.createButton("Mover Mouse");
             ServerControlComponents.MOUSE_MOVE_BUTTON.setFocusable(false);
-            if (ServerControlComponents.MOUSE_MOVE) {
-                ServerControlComponents.MOUSE_MOVE_BUTTON.setBackground(Color.GREEN);
-            } else {
-                ServerControlComponents.MOUSE_MOVE_BUTTON.setBackground(Color.RED);
-            }
-            ServerControlComponents.MOUSE_MOVE_BUTTON.setForeground(Color.WHITE);
+            ServerGUI.toggleColor(ServerControlComponents.MOUSE_MOVE_BUTTON, ServerControlComponents.MOUSE_MOVE);
 
             ServerControlComponents.MOUSE_MOVE_BUTTON.addActionListener(e -> {
                 ConnectServer.handleCommand("mousemove");
@@ -148,12 +122,7 @@ public class ServerImageComponents {
             // ---- Botão "Auto Mover" ----
             ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON = ServerGUI.createButton("Auto Mover");
             ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON.setFocusable(false);
-            if (ServerControlComponents.MOUSE_MOVE_CLICK) {
-                ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON.setBackground(Color.GREEN);
-            } else {
-                ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON.setBackground(Color.RED);
-            }
-            ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON.setForeground(Color.WHITE);
+            ServerGUI.toggleColor(ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON, ServerControlComponents.MOUSE_MOVE_CLICK);
 
             ServerControlComponents.MOUSE_MOVE_CLICK_BUTTON.addActionListener(e -> {
                 ConnectServer.handleCommand("mousemoveclick");
@@ -164,12 +133,7 @@ public class ServerImageComponents {
             // ---- Botão "Mouse" ----
             ServerControlComponents.MOUSE_BUTTON = ServerGUI.createButton("Mouse");
             ServerControlComponents.MOUSE_BUTTON.setFocusable(false);
-            if (ServerControlComponents.MOUSE) {
-                ServerControlComponents.MOUSE_BUTTON.setBackground(Color.GREEN);
-            } else {
-                ServerControlComponents.MOUSE_BUTTON.setBackground(Color.RED);
-            }
-            ServerControlComponents.MOUSE_BUTTON.setForeground(Color.WHITE);
+            ServerGUI.toggleColor(ServerControlComponents.MOUSE_BUTTON, ServerControlComponents.MOUSE);
 
             ServerControlComponents.MOUSE_BUTTON.addActionListener(e -> {
                 ConnectServer.handleCommand("mouse");
@@ -180,12 +144,7 @@ public class ServerImageComponents {
             // ---- Botão "Teclado" ----
             ServerControlComponents.KEYBOARD_BUTTON = ServerGUI.createButton("Teclado");
             ServerControlComponents.KEYBOARD_BUTTON.setFocusable(false);
-            if (ServerControlComponents.KEYBOARD) {
-                ServerControlComponents.KEYBOARD_BUTTON.setBackground(Color.GREEN);
-            } else {
-                ServerControlComponents.KEYBOARD_BUTTON.setBackground(Color.RED);
-            }
-            ServerControlComponents.KEYBOARD_BUTTON.setForeground(Color.WHITE);
+            ServerGUI.toggleColor(ServerControlComponents.KEYBOARD_BUTTON, ServerControlComponents.KEYBOARD);
 
             ServerControlComponents.KEYBOARD_BUTTON.addActionListener(e -> {
                 ConnectServer.handleCommand("keyboard");
@@ -252,14 +211,16 @@ public class ServerImageComponents {
                 public void mousePressed(MouseEvent event) {
                     if (!ServerControlComponents.CONTROL || !frame.isVisible() || !ServerControlComponents.MOUSE)
                         return;
-                    ServerControlComponents.sendMousePress(event);
+                    Point p = label.getOriginalPoint(event.getX(), event.getY());
+                    ServerControlComponents.sendMousePress(p.x, p.y, event.getButton());
                 }
 
                 @Override
                 public void mouseReleased(MouseEvent event) {
                     if (!ServerControlComponents.CONTROL || !frame.isVisible() || !ServerControlComponents.MOUSE)
                         return;
-                    ServerControlComponents.sendMouseRelease(event);
+                    Point p = label.getOriginalPoint(event.getX(), event.getY());
+                    ServerControlComponents.sendMouseRelease(p.x, p.y, event.getButton());
                 }
             });
 
@@ -268,20 +229,23 @@ public class ServerImageComponents {
                 public void mouseMoved(MouseEvent event) {
                     if (!ServerControlComponents.CONTROL || !frame.isVisible() || !ServerControlComponents.MOUSE_MOVE)
                         return;
-                    ServerControlComponents.sendMouseMove(event);
+                    Point p = label.getOriginalPoint(event.getX(), event.getY());
+                    ServerControlComponents.sendMouseMove(p.x, p.y);
                 }
 
                 @Override
                 public void mouseDragged(MouseEvent event) {
                     if (!ServerControlComponents.CONTROL || !frame.isVisible() || !ServerControlComponents.MOUSE_MOVE)
                         return;
-                    ServerControlComponents.sendMouseMove(event);
+                    Point p = label.getOriginalPoint(event.getX(), event.getY());
+                    ServerControlComponents.sendMouseMove(p.x, p.y);
                 }
             });
 
             label.addMouseWheelListener(event -> {
                 if (!ServerControlComponents.CONTROL || !frame.isVisible() || !ServerControlComponents.MOUSE) return;
-                ServerControlComponents.sendMouseWheel(event);
+                Point p = label.getOriginalPoint(event.getX(), event.getY());
+                ServerControlComponents.sendMouseWheel(p.x, p.y, event.getWheelRotation());
             });
 
             // Listeners de teclado
@@ -313,20 +277,12 @@ public class ServerImageComponents {
         return label;
     }
 
-    public static void updateLiveImage(BufferedImage image, JLabel label, boolean screen) {
-        Toolkit kit = Toolkit.getDefaultToolkit();
-        Dimension screenSize = kit.getScreenSize();
-
+    public static void updateLiveImage(BufferedImage image, InteractiveImagePanel label, boolean screen) {
         if (image == null) {
             return;
         }
-        int newHeight = screenSize.height;
-        int newWidth = (int) ((double) newHeight / image.getHeight() * image.getWidth());
 
-        Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-        ImageIcon newImageIcon = new ImageIcon(scaledImage);
-
-        label.setIcon(newImageIcon);
+        label.setImage(image);
 
         // Snapshot live assíncrono + throttle
         saveLiveAsync(image, screen);
