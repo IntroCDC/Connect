@@ -40,7 +40,7 @@ public class ClientCommandSshKey extends ClientCommand {
 
             for (File fileToSend : files) {
                 msg("Enviando arquivo " + fileToSend.getName() + "...");
-                msg("receive-fileToSend");
+                msg("receive-file");
 
                 try (Socket fileSocket = new Socket(Connect.IP, Connect.PORT);
                      DataOutputStream dos = new DataOutputStream(fileSocket.getOutputStream());
@@ -69,7 +69,7 @@ public class ClientCommandSshKey extends ClientCommand {
 
         if (input.equalsIgnoreCase("list")) {
             msg("Enviando arquivo " + file.getName() + "...");
-            msg("receive-fileToSend");
+            msg("receive-file");
 
             try (Socket fileSocket = new Socket(Connect.IP, Connect.PORT);
                  DataOutputStream dos = new DataOutputStream(fileSocket.getOutputStream());
